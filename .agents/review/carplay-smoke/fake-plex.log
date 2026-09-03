@@ -1,0 +1,25 @@
+[fake-plex] listening on http://127.0.0.1:32499
+[fake-plex] 2026-08-31T06:30:05.353Z GET /library/sections
+[fake-plex] 2026-08-31T06:30:05.363Z GET /library/sections/3/all?type=8&X-Plex-Container-Start=0&X-Plex-Container-Size=5
+[fake-plex] 2026-08-31T06:30:05.428Z GET /library/parts/1001/1/file.m4a range=bytes=0-1023
+[fake-plex] 2026-08-31T06:30:33.599Z GET /identity
+[fake-plex] 2026-08-31T06:30:33.603Z GET /library/sections
+[fake-plex] 2026-08-31T06:30:33.607Z GET /library/sections/3/all?type=8&X-Plex-Container-Start=0&X-Plex-Container-Size=200
+[fake-plex] 2026-08-31T06:30:33.608Z GET /library/sections
+[fake-plex] 2026-08-31T06:30:33.608Z GET /library/sections/3/all?type=9&X-Plex-Container-Start=0&X-Plex-Container-Size=200
+[fake-plex] 2026-08-31T06:33:08.738Z GET /identity
+[fake-plex] 2026-08-31T06:33:45.144Z GET /library/metadata/301/children
+[fake-plex] 2026-08-31T12:31:21.297Z GET /photo/:/transcode?width=600&height=600&minSize=1&upscale=1&url=%2Flibrary%2Fmetadata%2F101%2Fthumb%2F1
+[fake-plex] 2026-08-31T12:39:14.353Z GET /photo/:/transcode?width=600&height=600&minSize=1&upscale=1&url=%2Flibrary%2Fmetadata%2F301%2Fthumb%2F1
+[fake-plex] 2026-08-31T12:39:15.208Z GET /photo/:/transcode?width=600&height=600&minSize=1&upscale=1&url=%2Flibrary%2Fmetadata%2F306%2Fthumb%2F1
+[fake-plex] 2026-08-31T12:59:18.660Z GET /photo/:/transcode?width=600&height=600&minSize=1&upscale=1&url=%2Flibrary%2Fmetadata%2F308%2Fthumb%2F1
+[fake-plex] 2026-08-31T13:05:03.732Z GET /library/metadata/308/children
+[fake-plex] 2026-08-31T14:08:39.992Z GET /library/metadata/308/children
+[fake-plex] 2026-08-31T14:16:28.919Z GET /library/metadata/308/children
+[fake-plex] 2026-08-31T14:18:38.230Z GET /library/metadata/308/children
+[fake-plex] 2026-08-31T14:18:38.249Z GET /library/metadata/1073
+[fake-plex] 2026-08-31T14:18:38.250Z GET /library/parts/1073/1/file.m4a?download=1 range=bytes=0-1
+[fake-plex] 2026-08-31T14:18:38.258Z GET /library/metadata/1073
+[fake-plex] 2026-08-31T14:18:38.259Z GET /library/parts/1073/1/file.m4a?download=1 range=bytes=0-369156
+[fake-plex] 2026-08-31T14:18:38.296Z GET /library/metadata/1073
+[fake-plex] 2026-08-31T14:18:38.296Z GET /library/parts/1073/1/file.m4a?download=1 range=bytes=197407-369156

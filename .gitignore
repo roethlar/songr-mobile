@@ -1,0 +1,9 @@
+
+# Xcode (project is generated from project.yml by XcodeGen)
+Songr.xcodeproj/
+DerivedData/
+*.xcuserstate
+
+# In-repo build artifacts (hard boundary: -derivedDataPath ./build)
+build/
+.build/

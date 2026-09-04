@@ -114,7 +114,7 @@ faces.
 Status: Active
 
 Decision:
-NOTHING outside `~/Dev/carplay_test` may be created, modified, deleted,
+NOTHING outside this repo may be created, modified, deleted,
 or executed-with-side-effects without the owner's EXPLICIT per-action
 approval in chat. This includes `~/Dev/roon-controller` (another agent
 is working there), `~/Dev/vela`, `~/Dev/Bixi`, `~/Library`, the iOS

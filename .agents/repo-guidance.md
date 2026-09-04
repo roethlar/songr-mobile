@@ -18,11 +18,21 @@ account). Owner: Michael.
 
 ## Verification
 
-None yet — record one once the project has code.
+- Unit tests (macOS, no simulator): run `swift test` from
+  `Packages/SongrKit`.
+- App build: run `xcodegen generate` at the repo root, then
+  `env DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcodebuild
+  -project Songr.xcodeproj -scheme Songr -destination
+  'generic/platform=iOS Simulator' -derivedDataPath ./build build`.
+  Toolchain location and simulator protection live in `.agents/machines.md`.
+- For simulator verification, follow the standing exception in
+  `.agents/decisions.md` and the protected-device rule in
+  `.agents/machines.md`. The build command above does not boot a device.
 
 ## Remotes & Sync
 
-No remote configured yet. Push policy: `.agents/push-policy.md`.
+Remotes are configured in git; inspect them with `git remote -v`.
+Push policy: `.agents/push-policy.md`.
 
 ## Earned Practices
 

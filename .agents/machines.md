@@ -5,6 +5,26 @@ keyed by machine and dated. See `.agents/state.md` write-time rules.
 
 ## michael-mac (darwin, primary)
 
+- 2026-09-04: Xcode 27 beta is also installed at `/Applications/Xcode-beta.app`
+  and was used for the owner's physical iOS 27 device run. The owner confirmed
+  Songr opens directly on the phone after Xcode reported a trust-related launch
+  error. Read-only inspection confirmed Developer Mode is enabled and the
+  installed development app is `com.draegloth.Songr`. Its matching, unexpired
+  provisioning profile includes the phone and the CarPlay audio entitlement;
+  actual in-car behavior has not been verified.
+- 2026-09-04: the ignored `Songr.xcodeproj` now holds owner signing settings
+  (team `27R2KCAHN7`, bundle identifier `com.roethlar.Songr`). These differ from
+  tracked `project.yml` and the currently installed phone app. Do not regenerate
+  that project over the owner's settings. For the touch-index verification,
+  XcodeGen generated `build/touch-index-project/Songr.xcodeproj`, with App and
+  Packages links pointing back into this repo; builds used the in-repo build
+  directory. The original project's hash was unchanged.
+- 2026-09-04: copied SwiftPM build caches still embed the former
+  `/Users/michael/Dev/carplay_test` path. Fresh in-repo scratch output avoids
+  that stale cache. CommandLineTools-only Swift could not import XCTest;
+  using Xcode's toolchain via DEVELOPER_DIR and xcrun resolved it. The current
+  verification command is in `.agents/repo-guidance.md`.
+
 - 2026-09-04 (rechecked): `xcode-select` points at CommandLineTools;
   Xcode 26.6 is installed at `/Applications/Xcode.app` but is not active.
   Do not change system state — invoke builds with

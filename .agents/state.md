@@ -14,49 +14,45 @@ pointed to, never copied; machine-specific facts (local toolchains, host layout,
 
 ## Now
 
-- Standalone native player architecture is implemented; current direction
-  lives in `.agents/decisions.md`. Landed implementation and historical
-  verification entries are in `docs/history/state-archive.md`.
-- CarPlay browse soft spots remain for on-screen assessment:
-  `App/Sources/CarPlay/CarPlayBrowseController.swift` loads artwork
-  sequentially within each cover row (separate tasks per row), and the
-  pre-iOS 26 artists fallback consumes `CPListTemplate.maximumItemCount`.
-  The current iOS 26 path uses condensed image rows. These code facts were
-  rechecked as of 2470fdf; library-scale behavior remains unverified here.
+- The phone touch index is implemented under the owner's approved plan:
+  `docs/plans/phone-touch-index.md`. Verification, device checks still to do,
+  and the separately reproduced artist-row defect are recorded in
+  `docs/reviews/phone-touch-index.md`.
+- The owner confirmed the app opens on a physical iPhone (2026-09-04).
+  Current signing and provisioning evidence lives in `.agents/machines.md`;
+  the older blanket claims that device setup and CarPlay entitlement approval
+  necessarily block testing are superseded by that evidence. Real-car
+  behavior has not yet been verified.
+- CarPlay is the next priority and the app's main purpose, per the owner.
+  Current source assessment and a proposed first implementation slice are in
+  `docs/plans/carplay-browse.md`; that slice is not yet approved.
 
 ## Next
 
-- Reconcile the remaining phone/CarPlay verification coverage with the
-  screenshots under `.agents/screenshots/` and `.agents/review/carplay-smoke/`;
-  the earlier blanket claims that simulator approval and a first link were
-  still required have been superseded (see Blockers).
-- Sanity-check paging, cache writes, and letter jumps with the owner's real
-  library on device after signing is configured. The current Apple
-  entitlement status needs owner confirmation before real-car testing.
+- Review and approve the proposed CarPlay browsing slice, restore a working
+  CarPlay display, and verify the presentation and full-library reachability.
+- Check sustained-touch magnifier appearance, haptic feel, cancellation, and
+  VoiceOver on a device after rebuilding the phone change.
+- Keep the pre-existing artist-row defect visible in the queue; its baseline
+  reproduction is in the phone verification report. CarPlay takes priority.
 
-## Blockers
+## Blockers and open questions
 
-- Verification record conflict: the former Next items requested simulator
-  approval and a first Plex link, but the standing simulator exception in
-  `.agents/decisions.md` and the archived real-library screenshot record
-  supersede those bases. Remaining on-screen coverage and the current link
-  state cannot be established from the repo alone; no simulator was launched
-  during this sweep.
-- Device signing remains unconfigured in tracked `project.yml` as of
-  2470fdf (no development team). Owner setup is needed for on-device work.
-- CarPlay audio entitlement was recorded as requested, approval pending,
-  on 2026-08-30. Apple's current status cannot be verified from repo evidence;
-  retain this as an unverified external blocker to real-car testing only.
-- `docs/plans/music-player-v1.md` still labels the server-based v2 plan
-  ACTIVE, although the architecture v3 decision supersedes it. The plan is
-  outside this sweep's record-only edit scope; reconcile its status before
-  using it as an implementation plan.
+- The current CarPlay simulator window is blank and its display capture did
+  not complete. Actual CarPlay presentation needs a working display before a
+  layout change can be accepted; there is no current real-car verification.
+- The owner has not yet confirmed whether their CarPlay input is touch,
+  rotary/buttons, or both. The proposed plan preserves both input styles.
+- The ignored generated project contains owner signing changes that are not
+  represented in project.yml. Preserve them; see `.agents/machines.md`.
+- `docs/plans/music-player-v1.md` still labels its server-based v2 plan ACTIVE,
+  despite the superseding v3 decision. Do not use it as the current plan.
 
 ## Verification
 
-- See `.agents/repo-guidance.md` (Verification) for the canonical commands.
-- Historical test/build results are archived, not current results. This
-  docs-only sweep did not rerun Swift tests or an app build.
+- `.agents/repo-guidance.md` owns canonical verification commands.
+- `docs/reviews/phone-touch-index.md` owns this change's results and limits.
+  Earlier implementation results remain in `docs/history/state-archive.md`.
 
 ## Active Sources
 
@@ -64,8 +60,10 @@ pointed to, never copied; machine-specific facts (local toolchains, host layout,
 - `.agents/repo-guidance.md`
 - `.agents/decisions.md`
 - `.agents/machines.md` (including the protected simulator rule)
+- `docs/plans/phone-touch-index.md`
+- `docs/plans/carplay-browse.md` (proposed, not approved)
 
 ## Unrecorded Repo Memory
 
 - Historical commit provenance is incomplete in this clone; see
-  `.agents/machines.md`. Archived verification claims have not been rerun.
+  `.agents/machines.md`.

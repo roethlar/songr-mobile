@@ -129,74 +129,126 @@ struct DottedLeader: View {
     }
 }
 
-/// `.rail` — songr's letter index as SIMPLE, CLICKABLE LETTERS (owner
-/// ruling 2026-08-31: no scrub bar, no magnifier bubble). Every letter is
-/// its own full-cell-width tap target. Cells never shrink below a tappable
-/// height: when one column cannot fit all 27 at `minTapHeight`, the rail
-/// splits into exactly as many columns as needed (portrait: 1, phone
-/// landscape: 2), letters reading top-to-bottom then across.
+/// One touch index in its own gutter, shared by Artists, Albums, and Genres.
+/// Tap or slide to jump; a magnified letter makes short layouts usable without
+/// wrapping the alphabet over the content (owner approval, 2026-09-04).
 struct AlphaJumpRail: View {
     let activeTitles: Set<String>
     let onSelect: (String) -> Void
 
     private let titles = CatalogIndexer.sectionTitles
-    private let columnWidth: CGFloat = 34
-    /// Minimum tappable cell height; column count derives from it.
-    private let minTapHeight: CGFloat = 24
+    private let railWidth: CGFloat = 44
+    private let verticalPadding: CGFloat = 8
+
+    @GestureState private var isInteracting = false
+    @State private var scrubTitle: String?
+    @State private var selectedTitle: String?
+    @State private var feedback = UISelectionFeedbackGenerator()
 
     var body: some View {
         GeometryReader { geometry in
-            let height = max(geometry.size.height, minTapHeight)
-            let rowsPerColumn = max(Int(height / minTapHeight), 1)
-            let columns = max(1, Int(ceil(Double(titles.count) / Double(rowsPerColumn))))
-            let rows = Int(ceil(Double(titles.count) / Double(columns)))
-            let cellHeight = min(height / CGFloat(rows), 34)
-            HStack(alignment: .top, spacing: 0) {
-                ForEach(0..<columns, id: \.self) { column in
-                    VStack(spacing: 0) {
-                        ForEach(columnTitles(column, rows: rows), id: \.self) { title in
-                            letterCell(title, height: cellHeight)
-                        }
-                        Spacer(minLength: 0)
-                    }
+            let height = max(geometry.size.height, 1)
+            let cellHeight = indexHeight(height) / CGFloat(titles.count)
+            VStack(spacing: 0) {
+                ForEach(titles, id: \.self) { title in
+                    Text(title)
+                        .font(SongrTheme.font(min(13, max(1, cellHeight - 1)), .demiBold))
+                        .foregroundStyle(letterColor(title))
+                        .frame(width: railWidth, height: cellHeight)
                 }
             }
-            .frame(width: CGFloat(columns) * columnWidth,
-                   height: height, alignment: .top)
+            .padding(.vertical, verticalPadding)
+            .frame(width: railWidth, height: height, alignment: .top)
+            .contentShape(Rectangle())
+            .gesture(
+                DragGesture(minimumDistance: 0)
+                    .updating($isInteracting) { _, interacting, _ in
+                        interacting = true
+                    }
+                    .onChanged { value in
+                        scrub(at: value.location.y, height: height)
+                    }
+                    .onEnded { value in
+                        scrub(at: value.location.y, height: height)
+                        scrubTitle = nil
+                    }
+            )
+            .overlay(alignment: .topLeading) {
+                if isInteracting, let title = scrubTitle,
+                   let index = titles.firstIndex(of: title) {
+                    let centerY = verticalPadding + (CGFloat(index) + 0.5) * cellHeight
+                    Text(title)
+                        .font(SongrTheme.font(36, .demiBold))
+                        .foregroundStyle(activeTitles.contains(title) ? SongrTheme.text : SongrTheme.soft)
+                        .frame(width: 64, height: 64)
+                        .background(SongrTheme.raise, in: RoundedRectangle(cornerRadius: 16))
+                        .overlay {
+                            RoundedRectangle(cornerRadius: 16)
+                                .strokeBorder(SongrTheme.lineStrong, lineWidth: 1)
+                        }
+                        .shadow(color: SongrTheme.shadow, radius: 8, y: 3)
+                        .position(x: railWidth + 44,
+                                  y: min(max(centerY, 32), max(height - 32, 32)))
+                        .allowsHitTesting(false)
+                        .accessibilityHidden(true)
+                }
+            }
+            .onChange(of: isInteracting) { _, interacting in
+                // Gesture cancellation must dismiss the bubble too.
+                if !interacting { scrubTitle = nil }
+            }
+            .onChange(of: height) { _, _ in scrubTitle = nil }
         }
-        // Worst case (phone landscape) is two columns; reserving that width
-        // keeps the parent HStack layout stable across rotation.
-        .frame(width: railReservedWidth)
+        .frame(width: railWidth)
         .background(SongrTheme.rail)
-    }
-
-    /// Width the rail reserves from its parent: matched to the column count
-    /// the height math lands on in practice — regular height (portrait) fits
-    /// one column, compact height (phone landscape) needs two.
-    @Environment(\.verticalSizeClass) private var verticalSizeClass
-    private var railReservedWidth: CGFloat {
-        columnWidth * (verticalSizeClass == .compact ? 2 : 1)
-    }
-
-    private func columnTitles(_ column: Int, rows: Int) -> [String] {
-        let start = column * rows
-        guard start < titles.count else { return [] }
-        return Array(titles[start..<min(start + rows, titles.count)])
-    }
-
-    private func letterCell(_ title: String, height: CGFloat) -> some View {
-        let active = activeTitles.contains(title)
-        return Button {
-            guard active else { return }
-            UISelectionFeedbackGenerator().selectionChanged()
-            onSelect(title)
-        } label: {
-            Text(title)
-                .font(SongrTheme.font(13, .demiBold))
-                .foregroundStyle(active ? SongrTheme.soft : SongrTheme.disabled)
-                .frame(width: columnWidth, height: height)
-                .contentShape(Rectangle())
+        .allowsHitTesting(!activeTitles.isEmpty)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Alphabetical index")
+        .accessibilityValue(selectedTitle ?? availableTitles.first ?? "")
+        .accessibilityHint("Swipe up or down to jump between letters.")
+        .accessibilityAdjustableAction { direction in
+            let available = availableTitles
+            guard !available.isEmpty else { return }
+            let current = selectedTitle.flatMap { available.firstIndex(of: $0) }
+            switch direction {
+            case .increment:
+                select(available[min((current ?? -1) + 1, available.count - 1)])
+            case .decrement:
+                select(available[max((current ?? available.count) - 1, 0)])
+            @unknown default:
+                break
+            }
         }
-        .buttonStyle(.plain)
+        .accessibilityHidden(activeTitles.isEmpty)
+    }
+
+    private var availableTitles: [String] {
+        titles.filter { activeTitles.contains($0) }
+    }
+
+    private func indexHeight(_ height: CGFloat) -> CGFloat {
+        max(height - 2 * verticalPadding, 1)
+    }
+
+    private func letterColor(_ title: String) -> Color {
+        if !activeTitles.contains(title) { return SongrTheme.disabled }
+        return isInteracting && scrubTitle == title ? SongrTheme.accentBright : SongrTheme.soft
+    }
+
+    private func scrub(at y: CGFloat, height: CGFloat) {
+        let fraction = min(max((y - verticalPadding) / indexHeight(height), 0), 1)
+        let index = min(Int(fraction * CGFloat(titles.count)), titles.count - 1)
+        let title = titles[index]
+        guard title != scrubTitle else { return }
+        if scrubTitle == nil { feedback.prepare() }
+        scrubTitle = title
+        select(title)
+    }
+
+    private func select(_ title: String) {
+        guard activeTitles.contains(title) else { return }
+        selectedTitle = title
+        feedback.selectionChanged()
+        onSelect(title)
     }
 }

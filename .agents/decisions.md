@@ -34,6 +34,29 @@ live rule now owned elsewhere - archive it per the rule above: move it verbatim 
 
 ## Decisions
 
+### 2026-09-04 - Phone touch index; CarPlay is the next priority
+
+Status: Active
+
+Decision:
+The phone alphabet index uses one reserved touch gutter with tap and drag
+selection, a magnified letter during interaction, and selection haptics.
+It must not wrap into columns over browse content. This applies to Artists,
+Albums, and Genres; implementation plan: `docs/plans/phone-touch-index.md`.
+CarPlay is the product's main purpose and is the next work priority after
+this focused phone change. Its UI continues to use Apple's native templates.
+
+Reason:
+The owner confirmed the app launches on a physical iPhone, reported the
+two-column index overlapping content, requested a touchscreen-friendly
+swipe/magnifier, and explicitly approved that interaction. The owner then
+emphasized that CarPlay is the point of the app and needs work next.
+
+Supersedes:
+The 2026-08-31 phone-only ruling against scrubbing and a magnifier, preserved
+in the implementation history. The CarPlay browse directive below remains
+in force; this does not authorize a custom phone-style CarPlay gesture.
+
 <!--
 ### YYYY-MM-DD - <Decision title>
 

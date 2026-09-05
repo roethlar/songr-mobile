@@ -18,8 +18,10 @@ account). Owner: Michael.
 
 ## Verification
 
-- Unit tests (macOS, no simulator): run `swift test` from
-  `Packages/SongrKit`.
+- Unit tests (macOS, no simulator): from the repo root, run
+  `env DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcrun swift test --package-path Packages/SongrKit --scratch-path build/songrkit-tests`.
+  This uses Xcode's XCTest support and an in-repo compiler cache; see
+  `.agents/machines.md` for the toolchain and copied-cache diagnosis.
 - App build: run `xcodegen generate` at the repo root, then
   `env DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcodebuild
   -project Songr.xcodeproj -scheme Songr -destination
@@ -28,6 +30,10 @@ account). Owner: Michael.
 - For simulator verification, follow the standing exception in
   `.agents/decisions.md` and the protected-device rule in
   `.agents/machines.md`. The build command above does not boot a device.
+
+- Before regenerating the project, check `.agents/machines.md` for owner
+  signing overrides. When they exist, use a separate verification project
+  so regeneration does not overwrite the working device configuration.
 
 ## Remotes & Sync
 

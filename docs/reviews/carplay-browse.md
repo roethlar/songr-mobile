@@ -35,8 +35,9 @@ artwork grid in carplay is not approved."
 Work on that album candidate stopped. A temporary diagnostic artist-style
 switch was compiled but never installed; it was removed after the correction.
 No CarPlay implementation has been committed during this resumed work. Album
-text rows, with or without a small cover thumbnail, are awaiting the owner's
-choice. Artist text rows still need a solution for the observed native list
+presentation is awaiting the owner's choice after their request to see all
+options. `docs/design/carplay-options/README.md` owns the completed native visual
+comparison. Artist text rows still need a solution for the observed native list
 budget without silently losing catalog entries. The display itself is available;
 do not report it as a blocker.
 

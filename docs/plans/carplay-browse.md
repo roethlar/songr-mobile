@@ -4,8 +4,10 @@ Status: ARTIST READABILITY WORK AUTHORIZED; ALBUM PRESENTATION UNRESOLVED.
 On 2026-09-05 the owner explicitly corrected the scope: "album artwork grid in
 carplay is not approved." The earlier statement that album cards were approved
 was incorrect. Do not implement or land the pending CarPlay album-grid/card
-candidate. The owner has been asked to choose album-and-artist text rows or those
-rows with a small cover thumbnail. Neither replacement is approved yet.
+candidate. The owner requested all options before choosing. The native visual
+comparison is in `docs/design/carplay-options/README.md`, with nine presentations,
+a contact sheet, a full-size gallery, and a PDF. Selection is pending; the
+comparison itself approves no implementation or library-navigation compromise.
 
 ## Goal
 

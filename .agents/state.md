@@ -35,7 +35,10 @@ pointed to, never copied; machine-specific facts (local toolchains, host layout,
 - CarPlay presentation is unresolved under the corrected scope in
   `docs/plans/carplay-browse.md`; the owner says its album artwork grid is not
   approved. `docs/reviews/carplay-browse.md` owns the latest native layout and
-  capacity evidence. Pending CarPlay renderers must not be landed yet.
+  capacity evidence. Pending CarPlay renderers must not be landed yet. The owner
+  requested all presentation options before choosing;
+  `docs/design/carplay-options/README.md` owns the completed native comparison.
+  Selection remains pending.
 
 ## Next
 
@@ -73,7 +76,7 @@ pointed to, never copied; machine-specific facts (local toolchains, host layout,
 - `docs/plans/phone-touch-index.md`
 - `docs/plans/phone-navigation.md` (header/sorting implemented; saved music proposed)
 - `docs/reviews/phone-jump-followup.md`
-- `docs/plans/carplay-browse.md` (approved; implementation in progress)
+- `docs/plans/carplay-browse.md` (artist readability authorized; album choice pending)
 - `docs/reviews/carplay-browse.md`
 
 ## Unrecorded Repo Memory

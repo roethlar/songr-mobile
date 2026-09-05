@@ -5,6 +5,13 @@ keyed by machine and dated. See `.agents/state.md` write-time rules.
 
 ## michael-mac (darwin, primary)
 
+- 2026-09-05: While capturing the native CarPlay options, Computer Use clicks
+  returned `noWindowsAvailable` with the phone window minimized. Targeting
+  Simulator by bundle ID, raising the CarPlay window, then sending a keypress
+  activated it; coordinate clicks worked afterward. Its accessibility tree
+  still described the phone, so native screenshots determined click targets.
+  The normal verification app and phone window were restored after capture.
+
 - 2026-09-04: Simulator may reactivate its CarPlay window when a tool tries to tap the phone window. Close only the CarPlay window during phone input checks and reopen it afterward. Its accessibility tree can describe phone controls while the screenshot shows CarPlay; trust the actual target window. `-SongrForcePortrait` and `-SongrForceLandscape` set debug scene geometry; Simulator hardware rotation is separate.
 
 - 2026-09-04, as of 4bea466: the protected simulator's existing CarPlay window

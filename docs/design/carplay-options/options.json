@@ -1,0 +1,11 @@
+[
+  {"id":"A","title":"Plain text rows","detail":"3 full rows + part of the next. Most room for album and artist names.","api":"CPListItem without image"},
+  {"id":"B","title":"Rows with a cover","detail":"3 full rows. Album and artist stay together; artwork reduces text width.","api":"CPListItem with image"},
+  {"id":"C","title":"Compact paired rows","detail":"6 full albums in two columns. Both labels, with frequent truncation.","api":"CPListImageRowItemCondensedElement"},
+  {"id":"D","title":"Covers with captions","detail":"4 full albums + another artwork row. Title and artist below each cover.","api":"CPListImageRowItemRowElement"},
+  {"id":"E","title":"Inset cover cards","detail":"4 full cards + part of the next row. Small covers, short title and artist labels.","api":"CPListImageRowItemCardElement; showsImageFullHeight = false"},
+  {"id":"F","title":"Full-image cards","detail":"4 full cards + part of the next row. Larger artwork behind short labels.","api":"CPListImageRowItemCardElement; showsImageFullHeight = true"},
+  {"id":"G","title":"Covers only","detail":"8 full covers. No album or artist labels; depends on recognizing the artwork.","api":"CPListImageRowItemGridElement"},
+  {"id":"H","title":"Round covers + titles","detail":"8 full albums. Title only; circular crops remove artwork corners.","api":"CPListImageRowItemImageGridElement; circular"},
+  {"id":"I","title":"Square covers + titles","detail":"8 full albums. Title only, with small covers and frequent truncation.","api":"CPListImageRowItemImageGridElement; roundedRectangle"}
+]

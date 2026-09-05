@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Songr · CarPlay album options</title>
+<style>
+:root { color-scheme: light dark; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+* { box-sizing: border-box; }
+body { margin: 0; padding: clamp(16px, 3vw, 40px); background: light-dark(#f6f6f6,#121212); color: light-dark(#191919,#f2f2f2); }
+main { max-width: 1660px; margin: auto; }
+h1 { font-size: clamp(25px,3vw,38px); font-weight: 500; margin: 0 0 10px; }
+h2 { font-size: 22px; font-weight: 500; margin: 0 0 12px; }
+p { line-height: 1.5; margin: 10px 0 0; }
+header { margin-bottom: 32px; }
+header p, article p { color: light-dark(#515151,#bdbdbd); }
+nav { display: flex; flex-wrap: wrap; gap: 12px 24px; margin-top: 16px; }
+a { color: light-dark(#165cc0,#9bc1ff); text-underline-offset: 3px; }
+.options { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 36px 28px; }
+article { min-width: 0; }
+article a { display: block; }
+img { display: block; width: 100%; height: auto; }
+footer { border-top: 1px solid light-dark(#d0d0d0,#434343); margin-top: 40px; padding-top: 16px; max-width: 1000px; }
+@media (max-width: 900px) { .options { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<main>
+<header>
+  <h1>CarPlay album layouts</h1>
+  <p>All nine native presentations · Same 12 albums · 800 × 480 display · No option selected</p>
+  <nav aria-label="Comparison formats">
+    <a href="comparison.png">All nine on one sheet</a>
+    <a href="carplay-options.pdf">PDF: one option per page</a>
+  </nav>
+</header>
+<div class="options">
+<article id="A">
+  <h2>A · Plain text rows</h2>
+  <a href="A.png" aria-label="Open option A at native size"><img src="A.png" width="800" height="480" alt="Native CarPlay screenshot: Plain text rows"></a>
+  <p>3 full rows + part of the next. Most room for album and artist names.</p>
+</article>
+<article id="B">
+  <h2>B · Rows with a cover</h2>
+  <a href="B.png" aria-label="Open option B at native size"><img src="B.png" width="800" height="480" alt="Native CarPlay screenshot: Rows with a cover"></a>
+  <p>3 full rows. Album and artist stay together; artwork reduces text width.</p>
+</article>
+<article id="C">
+  <h2>C · Compact paired rows</h2>
+  <a href="C.png" aria-label="Open option C at native size"><img src="C.png" width="800" height="480" alt="Native CarPlay screenshot: Compact paired rows"></a>
+  <p>6 full albums in two columns. Both labels, with frequent truncation.</p>
+</article>
+<article id="D">
+  <h2>D · Covers with captions</h2>
+  <a href="D.png" aria-label="Open option D at native size"><img src="D.png" width="800" height="480" alt="Native CarPlay screenshot: Covers with captions"></a>
+  <p>4 full albums + another artwork row. Title and artist below each cover.</p>
+</article>
+<article id="E">
+  <h2>E · Inset cover cards</h2>
+  <a href="E.png" aria-label="Open option E at native size"><img src="E.png" width="800" height="480" alt="Native CarPlay screenshot: Inset cover cards"></a>
+  <p>4 full cards + part of the next row. Small covers, short title and artist labels.</p>
+</article>
+<article id="F">
+  <h2>F · Full-image cards</h2>
+  <a href="F.png" aria-label="Open option F at native size"><img src="F.png" width="800" height="480" alt="Native CarPlay screenshot: Full-image cards"></a>
+  <p>4 full cards + part of the next row. Larger artwork behind short labels.</p>
+</article>
+<article id="G">
+  <h2>G · Covers only</h2>
+  <a href="G.png" aria-label="Open option G at native size"><img src="G.png" width="800" height="480" alt="Native CarPlay screenshot: Covers only"></a>
+  <p>8 full covers. No album or artist labels; depends on recognizing the artwork.</p>
+</article>
+<article id="H">
+  <h2>H · Round covers + titles</h2>
+  <a href="H.png" aria-label="Open option H at native size"><img src="H.png" width="800" height="480" alt="Native CarPlay screenshot: Round covers + titles"></a>
+  <p>8 full albums. Title only; circular crops remove artwork corners.</p>
+</article>
+<article id="I">
+  <h2>I · Square covers + titles</h2>
+  <a href="I.png" aria-label="Open option I at native size"><img src="I.png" width="800" height="480" alt="Native CarPlay screenshot: Square covers + titles"></a>
+  <p>8 full albums. Title only, with small covers and frequent truncation.</p>
+</article>
+</div>
+<footer>
+  <p>Click any screen to inspect it at native size. These are actual iOS 26 CarPlay Simulator captures, with system spacing and truncation. Other vehicle displays may show different density. The first album has no available cover in this preview.</p>
+  <p>A and B offer the most readable names. C trades text width for density. D–I show every artwork-oriented family for comparison; including a grid here does not approve it.</p>
+  <p>For the complete library, ordinary rows need a separate navigation/loading decision: this connection permits 500 list items, while the cached library has 3,982 albums. C–I can group multiple albums into each native item, in batches of at most 24. This twelve-album comparison does not prove full-library behavior.</p>
+  <p>These letters apply only to this CarPlay comparison. The selected phone design B is unchanged.</p>
+</footer>
+</main>
+</body>
+</html>

@@ -34,18 +34,20 @@ live rule now owned elsewhere - archive it per the rule above: move it verbatim 
 
 ## Decisions
 
-### 2026-09-05 - CarPlay album grid is not approved
+### 2026-09-05 - CarPlay album candidate A selected
 
-Status: Active scope correction.
+Status: Active layout decision.
 
-Decision: The owner explicitly stated, "album artwork grid in carplay is not
-approved." The prior plan's album-card approval claim was incorrect. CarPlay
-album presentation requires a separate choice before implementation; the current
-pending grid/card renderer must not be landed. `docs/plans/carplay-browse.md`
-owns the unresolved presentation and authorized remaining work.
+Decision: The owner selected A after reviewing all nine native CarPlay album
+presentations: plain, full-width rows with album title and artist name, without
+artwork. `docs/design/carplay-options/A.png` is the exact selected reference.
+The comparison remains unchanged as the record of what the owner reviewed.
 
-This supersedes the older blanket artwork-grid directive for CarPlay albums.
-The phone layout decision remains owned by `docs/plans/phone-navigation.md`.
+This settles the earlier album-presentation question. The pending grid/card
+renderer must not be landed. `docs/plans/carplay-browse.md` owns the selected
+contract and remaining full-library navigation work. A does not approve paging,
+letter drill-down, or losing entries to fit native limits. Complete library
+access remains required. The separate phone candidate B decision remains active.
 
 ### 2026-09-04 - Phone navigation candidate B selected
 

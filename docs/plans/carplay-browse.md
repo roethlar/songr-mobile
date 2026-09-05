@@ -1,13 +1,13 @@
 # CarPlay browsing
 
-Status: ARTIST READABILITY WORK AUTHORIZED; ALBUM PRESENTATION UNRESOLVED.
-On 2026-09-05 the owner explicitly corrected the scope: "album artwork grid in
-carplay is not approved." The earlier statement that album cards were approved
-was incorrect. Do not implement or land the pending CarPlay album-grid/card
-candidate. The owner requested all options before choosing. The native visual
-comparison is in `docs/design/carplay-options/README.md`, with nine presentations,
-a contact sheet, a full-size gallery, and a PDF. Selection is pending; the
-comparison itself approves no implementation or library-navigation compromise.
+Status: ALBUM A SELECTED; FULL-LIBRARY NAVIGATION UNRESOLVED.
+
+The owner selected A on 2026-09-05 after reviewing all nine native presentations:
+plain, full-width album-and-artist rows without artwork.
+`docs/design/carplay-options/A.png` is the selected visual reference, unchanged.
+The uncommitted album-grid/card renderer must not be landed. The appearance is
+settled; a change from continuous alphabet navigation to paging or letter
+selection is not approved by the layout choice.
 
 ## Goal
 
@@ -43,9 +43,9 @@ represent different builds.
 
 1. Use the native iOS 26+ row element for readable artist names and album
    counts, retaining the continuous library and native alphabet index.
-2. Resolve the album presentation with the owner before implementing it.
-   An artwork grid or card layout is not approved. Preserve album-to-track
-   navigation and play-from-the-tapped-track behavior in the chosen replacement.
+2. Use selected A for albums: ordinary `CPListItem` rows with album title and
+   artist name, no image. Preserve album-to-track navigation and playback from
+   the tapped track. Resolve complete-library access before landing this change.
 3. Make an approved presentation the normal debug and release path; retire the
    temporary gallery once its relevant presentation is adopted.
 4. Verify late-letter access and native template limits at the owner's
@@ -69,9 +69,23 @@ exceeds that, so a readable, complete artist presentation still needs resolution
 Do not silently truncate it or accept tiles as a substitute.
 
 The uncommitted album cards and batched artwork-loading changes remain
-experiments, not approved shipping work. Keep them out of commits while the
-album presentation is unresolved. The 24-element image-row limit remains valid
+experiments, not approved shipping work. Keep these out of commits; they do not
+match selected A. The 24-element image-row limit remains valid
 baseline evidence, but does not authorize a grid as the album solution.
+
+## Next navigation proof
+
+The native list budget is smaller than the library. The public list API has no
+scroll or alphabet-index selection callback for loading another range. Do not
+promise seamless windowing or allow the native template to trim the library.
+`docs/reviews/carplay-browse.md` owns the API and capacity evidence.
+
+Proposed next proof: selected A with a native Jump control and explicit previous
+and next ranges. Selecting a letter would load a bounded range starting there;
+every album must remain reachable, including letters larger than one range.
+Show the extra interactions and back behavior before seeking approval to change
+the continuous-list contract. This is a proposed proof, not an approved
+navigation decision or shipping change.
 
 ## Follow-up
 

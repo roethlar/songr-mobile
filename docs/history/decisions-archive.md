@@ -30,3 +30,17 @@ Supersedes:
 Plan v1's standalone-native-app architecture and its open Decision 1
 (single-backend choice) in `docs/plans/music-player-v1.md` (rewritten to
 v2 in the same change).
+
+### 2026-09-05 - CarPlay album grid is not approved
+
+Status: Active scope correction.
+
+Decision: The owner explicitly stated, "album artwork grid in carplay is not
+approved." The prior plan's album-card approval claim was incorrect. CarPlay
+album presentation requires a separate choice before implementation; the current
+pending grid/card renderer must not be landed. `docs/plans/carplay-browse.md`
+owns the unresolved presentation and authorized remaining work.
+
+This supersedes the older blanket artwork-grid directive for CarPlay albums.
+The phone layout decision remains owned by `docs/plans/phone-navigation.md`.
+

@@ -1,9 +1,8 @@
 # CarPlay browse verification
 
-Status: PRESENTATION UNRESOLVED, updated 2026-09-05. The owner states that the
-CarPlay album artwork grid is not approved. The earlier blanket approval claim
-was incorrect; `docs/plans/carplay-browse.md` owns the corrected scope. Pending
-CarPlay renderers must not be landed as an approved album presentation.
+Status: ALBUM A SELECTED; FULL-LIBRARY NAVIGATION UNRESOLVED, updated 2026-09-05.
+`docs/plans/carplay-browse.md` owns the selected contract. The pending grid/card
+experiments do not match selected A and must not land as its implementation.
 
 ## Findings and working changes
 
@@ -34,9 +33,9 @@ artwork grid in carplay is not approved."
 
 Work on that album candidate stopped. A temporary diagnostic artist-style
 switch was compiled but never installed; it was removed after the correction.
-No CarPlay implementation has been committed during this resumed work. Album
-presentation is awaiting the owner's choice after their request to see all
-options. `docs/design/carplay-options/README.md` owns the completed native visual
+No CarPlay implementation has been committed during this resumed work. The owner
+subsequently selected A after reviewing all options.
+`docs/design/carplay-options/README.md` owns the completed native visual
 comparison. Artist text rows still need a solution for the observed native list
 budget without silently losing catalog entries. The display itself is available;
 do not report it as a blocker.
@@ -44,3 +43,13 @@ do not report it as a blocker.
 ## Preserved limitations
 
 The pre-iOS 26 fallback is unchanged: plain artist rows are capped by the native item budget, and older album image rows are likewise bounded. A full-library redesign for that fallback is outside this slice. Native CarPlay touch and rotary/button behavior has not been verified in a real car. Artwork loading remains eager and sequential within each batch; broader loading policy remains a follow-up.
+
+## Plain-row API constraints (2026-09-05)
+
+The installed Xcode SDK's `CPListTemplate.h` confirms that `maximumItemCount`
+applies across all sections and excess items are trimmed. `updateSections`
+reloads the displayed table. Public delegates/handlers cover item selection;
+there is no public scroll or section-index-selection callback for automatically
+swapping in another library range. This read-only SDK inspection does not verify
+a replacement interaction. A's sample capture proves native appearance only;
+complete-library navigation still needs a proof.

@@ -32,19 +32,16 @@ pointed to, never copied; machine-specific facts (local toolchains, host layout,
   the older blanket claims that device setup and CarPlay entitlement approval
   necessarily block testing are superseded by that evidence. Real-car
   behavior has not yet been verified.
-- CarPlay presentation is unresolved under the corrected scope in
-  `docs/plans/carplay-browse.md`; the owner says its album artwork grid is not
-  approved. `docs/reviews/carplay-browse.md` owns the latest native layout and
-  capacity evidence. Pending CarPlay renderers must not be landed yet. The owner
-  requested all presentation options before choosing;
-  `docs/design/carplay-options/README.md` owns the completed native comparison.
-  Selection remains pending.
+- The owner selected CarPlay album A: plain, full-width album-and-artist rows.
+  `docs/plans/carplay-browse.md` owns the selected contract and remaining
+  full-library navigation work. `docs/design/carplay-options/README.md` owns the
+  unchanged comparison evidence. Pending grid/card experiments must not land.
 
 ## Next
 
-- Resolve CarPlay album presentation with the owner, then implement the selected
-  design under `docs/plans/carplay-browse.md`. Continue the authorized artist
-  readability work within the native limits recorded in its review.
+- Show how selected CarPlay A exposes the whole library within native limits;
+  evaluate the navigation proof proposed in `docs/plans/carplay-browse.md` before
+  changing the continuous alphabet-navigation contract.
 - Verify phone touch/flick behavior, sustained magnifier feel, haptics, and
   VoiceOver on the physical iOS 27 phone; `docs/reviews/phone-navigation.md` owns
   the current verification limits. The B header and sorting have already landed.
@@ -76,7 +73,7 @@ pointed to, never copied; machine-specific facts (local toolchains, host layout,
 - `docs/plans/phone-touch-index.md`
 - `docs/plans/phone-navigation.md` (header/sorting implemented; saved music proposed)
 - `docs/reviews/phone-jump-followup.md`
-- `docs/plans/carplay-browse.md` (artist readability authorized; album choice pending)
+- `docs/plans/carplay-browse.md` (album A selected; full-library navigation unresolved)
 - `docs/reviews/carplay-browse.md`
 
 ## Unrecorded Repo Memory

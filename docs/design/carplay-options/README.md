@@ -1,6 +1,11 @@
 # CarPlay album presentation comparison
 
-Status: REVIEW ONLY; NO PRESENTATION SELECTED. Captured 2026-09-05.
+Status: OWNER SELECTED A on 2026-09-05; captured before selection that day.
+
+The owner chose the original `A.png`: plain, full-width album-and-artist rows.
+The screenshots, gallery, and PDF remain unchanged, including their original
+no-selection captions. The selected contract and remaining navigation work live
+in `docs/plans/carplay-browse.md`.
 
 The owner requested all options after correcting the claim that a CarPlay album
 artwork grid was approved. This comparison presents nine native styles together,
@@ -69,8 +74,8 @@ that grouping capability proves complete connected-library behavior. The
 canonical capacity evidence is in
 [`docs/reviews/carplay-browse.md`](../../reviews/carplay-browse.md).
 
-The next step is the owner's visual preference, followed by a concrete plan for
-complete-library access within native limits. No paging, letter drill-down,
+The owner selected A. The next step is a concrete plan for complete-library
+access within native limits. No paging, letter drill-down,
 silent truncation, or grid implementation is approved by this comparison.
 
 ## Recreate the comparison files

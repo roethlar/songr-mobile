@@ -29,8 +29,8 @@ pointed to, never copied; machine-specific facts (local toolchains, host layout,
 
 ## Next
 
-- Review and approve the proposed CarPlay browsing slice, restore a working
-  CarPlay display, and verify the presentation and full-library reachability.
+- Review and approve the proposed CarPlay browsing slice, then verify the new
+  presentation and full-library reachability against the captured baseline.
 - Check sustained-touch magnifier appearance, haptic feel, cancellation, and
   VoiceOver on a device after rebuilding the phone change.
 - Keep the pre-existing artist-row defect visible in the queue; its baseline
@@ -38,9 +38,8 @@ pointed to, never copied; machine-specific facts (local toolchains, host layout,
 
 ## Blockers and open questions
 
-- The current CarPlay simulator window is blank and its display capture did
-  not complete. Actual CarPlay presentation needs a working display before a
-  layout change can be accepted; there is no current real-car verification.
+- A current CarPlay simulator baseline is now recorded in the proposed plan.
+  There is still no real-car verification or full catalog-count comparison.
 - The owner has not yet confirmed whether their CarPlay input is touch,
   rotary/buttons, or both. The proposed plan preserves both input styles.
 - The ignored generated project contains owner signing changes that are not

@@ -5,6 +5,12 @@ keyed by machine and dated. See `.agents/state.md` write-time rules.
 
 ## michael-mac (darwin, primary)
 
+- 2026-09-04, as of 4bea466: the protected simulator's existing CarPlay window
+  was initially blank. Selecting Simulator > I/O > External Displays > CarPlay
+  reconnected it successfully. The app then showed the existing library;
+  artist/album screens and the native alphabet picker were inspected, including
+  a jump to Z. No simulator erase, replacement, or keychain reset was used.
+
 - 2026-09-04: Xcode 27 beta is also installed at `/Applications/Xcode-beta.app`
   and was used for the owner's physical iOS 27 device run. The owner confirmed
   Songr opens directly on the phone after Xcode reported a trust-related launch

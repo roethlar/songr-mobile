@@ -21,10 +21,16 @@ artists fallback truncates at the native item budget. A temporary DEBUG
 gallery can replace the root template using an app-tmp command file.
 
 The installed iPhone development profile permits CarPlay, but no real-car
-verification has been reported. The existing simulator CarPlay window was
-blank and capturing its display did not complete; there is no new on-screen
-CarPlay baseline from this session. Restore a working CarPlay display before
-judging a new layout. Existing smoke screenshots may represent older builds.
+verification has been reported. As of 4bea466, a fresh baseline was captured
+on the existing iOS 26 simulator after reconnecting its CarPlay display.
+The current artist cards truncate names across two columns; the album grid
+shows covers without captions. The system alphabet picker opens from the
+native index, and selecting Z returns directly to the Z album section.
+That proves late-letter access in the observed library, not complete catalog
+counts. Baseline screenshots: `.agents/screenshots/carplay-before-artists.png`,
+`carplay-before-albums.png`, `carplay-before-index.png`, and
+`carplay-before-z.png` in the same directory. Older smoke screenshots may
+represent different builds.
 
 ## Proposed first slice
 

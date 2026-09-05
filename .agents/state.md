@@ -32,16 +32,21 @@ pointed to, never copied; machine-specific facts (local toolchains, host layout,
   the older blanket claims that device setup and CarPlay entitlement approval
   necessarily block testing are superseded by that evidence. Real-car
   behavior has not yet been verified.
-- The owner approved the CarPlay slice in `docs/plans/carplay-browse.md`. Working implementation and unresolved visual checks are recorded in `docs/reviews/carplay-browse.md`; the artist presentation is not finalized.
+- CarPlay presentation is unresolved under the corrected scope in
+  `docs/plans/carplay-browse.md`; the owner says its album artwork grid is not
+  approved. `docs/reviews/carplay-browse.md` owns the latest native layout and
+  capacity evidence. Pending CarPlay renderers must not be landed yet.
 
 ## Next
 
-- Implement selected navigation candidate B under `docs/plans/phone-navigation.md`, starting with the combined header and existing menu destinations. Follow with sorting and saved-music slices, sharing playback with CarPlay. Preserve the visible jump rail and artist jump correction.
-
-- Reopen the CarPlay simulator display and complete the visual/navigation checks in `docs/reviews/carplay-browse.md` before finalizing the approved slice.
-- Check sustained-touch magnifier appearance, haptic feel, cancellation, and
-  VoiceOver on a device after rebuilding the phone change.
-- Rebuild the app on the owner's physical iOS 27 phone to check the corrected artist jump behavior; see `docs/reviews/phone-jump-followup.md`.
+- Resolve CarPlay album presentation with the owner, then implement the selected
+  design under `docs/plans/carplay-browse.md`. Continue the authorized artist
+  readability work within the native limits recorded in its review.
+- Verify phone touch/flick behavior, sustained magnifier feel, haptics, and
+  VoiceOver on the physical iOS 27 phone; `docs/reviews/phone-navigation.md` owns
+  the current verification limits. The B header and sorting have already landed.
+- Favorites and offline Downloads remain subsequent functional work in
+  `docs/plans/phone-navigation.md`.
 
 ## Blockers and open questions
 

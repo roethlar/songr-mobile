@@ -1,6 +1,11 @@
 # CarPlay browsing
 
-Status: APPROVED 2026-09-04 by owner go; working implementation awaiting visual validation.
+Status: ARTIST READABILITY WORK AUTHORIZED; ALBUM PRESENTATION UNRESOLVED.
+On 2026-09-05 the owner explicitly corrected the scope: "album artwork grid in
+carplay is not approved." The earlier statement that album cards were approved
+was incorrect. Do not implement or land the pending CarPlay album-grid/card
+candidate. The owner has been asked to choose album-and-artist text rows or those
+rows with a small cover thumbnail. Neither replacement is approved yet.
 
 ## Goal
 
@@ -36,10 +41,10 @@ represent different builds.
 
 1. Use the native iOS 26+ row element for readable artist names and album
    counts, retaining the continuous library and native alphabet index.
-2. Use native album cards with cover, album title, and artist name instead
-   of cover-only tiles. Preserve album-to-track navigation and
-   play-from-the-tapped-track behavior.
-3. Make the chosen presentation the normal debug and release path; retire the
+2. Resolve the album presentation with the owner before implementing it.
+   An artwork grid or card layout is not approved. Preserve album-to-track
+   navigation and play-from-the-tapped-track behavior in the chosen replacement.
+3. Make an approved presentation the normal debug and release path; retire the
    temporary gallery once its relevant presentation is adopted.
 4. Verify late-letter access and native template limits at the owner's
    approximate 2,000-artist / 4,000-album scale. Do not silently declare the
@@ -54,9 +59,17 @@ confirmed by the owner, so preserve both touch and rotary/button navigation.
 
 ## Implementation findings
 
-Verification and the current UI roadblock are recorded in `docs/reviews/carplay-browse.md`. The proposed row-element API rendered artwork tiles in the simulator, so the artist presentation is not yet settled. A card-element candidate is in the working tree and must be inspected before finalizing.
+`docs/reviews/carplay-browse.md` owns the native layout and capacity evidence.
+The current artist-card experiment renders artwork tiles, not the requested
+readable text list. The CarPlay display is available again. Ordinary native text
+rows have a 500-item budget on the observed connection; the full artist library
+exceeds that, so a readable, complete artist presentation still needs resolution.
+Do not silently truncate it or accept tiles as a substitute.
 
-The capacity check found an existing 24-element-per-item truncation. Batching within each indexed section is part of this slice's full-library requirement. A process sample also identified excessive template serialization during cover loading; the working change publishes completed artwork batches to make the new cards usable. This is a targeted prerequisite, not the broader artwork policy redesign.
+The uncommitted album cards and batched artwork-loading changes remain
+experiments, not approved shipping work. Keep them out of commits while the
+album presentation is unresolved. The 24-element image-row limit remains valid
+baseline evidence, but does not authorize a grid as the album solution.
 
 ## Follow-up
 

@@ -34,6 +34,25 @@ live rule now owned elsewhere - archive it per the rule above: move it verbatim 
 
 ## Decisions
 
+### 2026-09-04 - Compact phone chips, visible jump list, and saved music
+
+Status: Active requirements; replacement implementation plan remains proposed.
+
+Decision:
+
+The jump list stays on screen for Artists and Albums. Redesign the chips
+for less screen use, touch friendliness, and simplicity; larger controls
+are not inherently better. Include sorting, Recently Added, Recently Played,
+Genres, Favorites, and downloads to save music on the device for offline
+playback. CarPlay remains the product's main purpose.
+
+Reason:
+
+The owner rejected removing the jump list, then rejected the larger two-row
+chip proposal. The revised compact layout and feature implementation are
+proposed in `docs/plans/phone-navigation.md`; neither rejection authorizes
+the new proposal. The existing touch-index interaction remains in force.
+
 ### 2026-09-04 - Phone touch index; CarPlay is the next priority
 
 Status: Active

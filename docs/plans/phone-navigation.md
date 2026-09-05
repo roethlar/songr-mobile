@@ -1,36 +1,77 @@
-# Phone library navigation
+# Phone library navigation and saved music
 
-Status: PROPOSED 2026-09-04; owner requested reimagining the overflowing chips and poor scrolling controls. Implementation of this redesign is not approved. The separately authorized artist scroll-target correction remains under `docs/plans/phone-touch-index.md`.
+Status: REVISED PROPOSAL 2026-09-04. The owner rejected replacing the jump rail and then rejected a larger, two-row chip layout. Requirements: less screen space, touch friendly, simple. The compact replacement below awaits approval; this document does not authorize shipping changes. Previously approved phone jump and CarPlay work retain their own authorization.
 
-## Source and affected code
+## Required behavior
 
-- Concept: `docs/design/phone-navigation-concept.html` (interactive design reference, not an app runtime dependency).
-- Current shell, scope selection, visited-pane preservation, and navigation paths: `App/Sources/UI/RootView.swift`.
-- Current rail and artist rows: `App/Sources/UI/ArtistsView.swift`.
-- Album and genre browse roots: `App/Sources/UI/AlbumsGridView.swift` and `App/Sources/UI/ScopeViews.swift`.
-- Existing theme, player bar, settings, navigation destinations, source loading, and playback remain native SwiftUI/AppModel behavior.
+- The jump list stays on screen for Artists and Albums. Preserve the existing reserved gutter, touch/drag selection, magnifier, and haptics. Keep existing Genres indexing as well.
+- Redesign the scope chips, preserving album grids and artist presentation. Do not replace the jump list with a picker or drill-in.
+- Include sorting, Recently Added, Recently Played, Most Played, Genres, Playlists, Favorites, and a download option to save music on the device for offline playback.
+- Favor compact controls and content space over larger visual buttons. CarPlay remains the main purpose of the app.
 
-## Proposed change requiring owner ruling
+## Proposed compact navigation
 
-Remove the horizontally scrolling scope chips and the narrow alphabet rail from the phone. Use a large current-view selector (for example, Artists with a downward chevron) and a separate Jump A–Z button. Each opens a native sheet with full-size tap targets. Keep all existing scopes reachable, preserve per-scope browsing state, and use a single full-width artist list with album counts below names. The tradeoff is one additional tap when switching scopes; no scope depends on discovering sideways scrolling.
+One row replaces the horizontal chip scroller:
 
-This replaces the phone interaction in the prior touch-index plan and the phone column presentation where they conflict. It does not authorize custom CarPlay sheets, controls, or gestures. CarPlay keeps its separate approved plan and Apple's template constraints.
+    Artists    Albums    More ∨    [sort icon]
 
-## Implementation contract after approval
+1. Artists and Albums remain directly selectable. More opens a native menu containing Genres, Recently Added, Recently Played, Most Played, Playlists, Favorites, and Downloads. The active destination is checked. Dismissing the menu changes nothing.
+2. Keep this row around 44 points high at ordinary text sizes. Use compact text and restrained selection styling, with non-overlapping full-height hit areas of at least 44×44 points. No large tiles, two-row shortcut dashboard, or horizontal scrolling.
+3. The sort icon opens contextual sorting choices; it does not add another permanent toolbar. It has an accessible Sort label and selected order announcement.
+4. When a secondary scope is active, More carries a selected state. Show its full name in the existing content heading rather than expanding the chip label or adding a permanent heading row.
+5. Adapt for landscape and Dynamic Type without clipping or overlapping targets. At accessibility text sizes, allow an explicit compact menu fallback for scope selection; do not shrink text or hide the jump rail.
+6. Reuse SongrShell.select(_:), visited panes, and per-pane NavigationPath so scope switches preserve browsing position and shelf refresh behavior. Keep settings and the player bar reachable. Hidden panes must not receive accessibility focus.
+7. The tradeoff is an extra tap for the secondary destinations. The owner's preference for compact navigation takes precedence over giving every destination a permanent chip.
 
-1. Replace `SongrShell.chipRow` with a compact header. The selector displays the current scope and opens a sheet containing Artists, Albums, Genres, Playlists, Recently played, Most played, and Recently added. Reuse `select(_:)` so visited pane state and shelf refresh behavior are preserved. Show the selected option; tapping an option changes scope and dismisses the sheet.
-2. Put Jump A–Z beside the selector for the root Artists, Albums, and Genres screens. Hide it for non-indexed scopes and pushed artist/album/track screens. Keep settings and the existing player bar reachable. Long scope names must wrap or adapt without pushing controls offscreen.
-3. Derive available index titles from the same catalog sections each browse root renders. Disable the jump button while no sections are available. Present A–Z and # in a native sheet with an adaptive grid. Every letter target is at least 44×44 points. Unavailable letters are visibly disabled. Compact landscape must increase columns or allow ordinary vertical sheet scrolling rather than shrinking targets.
-4. Use a fresh selection request for each letter tap so choosing the same letter twice still jumps. A concrete approach is a `BrowseJumpRequest` value carrying UUID, scope, and letter in the shell, passed into the corresponding `BrowsePane` and indexed root. Handle it inside that root's `ScrollViewReader`; never jump an invisible pane. Report active navigation depth from each pane so the shell does not expose Jump A–Z on pushed screens.
-5. Preserve stable lazy scroll targets and direct row identity from the artist correction. Avoid an outer lazy stack of variable-height section containers: the full-library Z-to-M probe showed incorrect offsets with that approach. For album/genre grids, verify long backward jumps against the real catalog before selecting a section representation. No delayed repeated-scroll workaround without reproducing why it is needed.
-6. Remove `AlphaJumpRail` after all phone callers migrate. Restore its gutter to content. Artist rows use one column in both orientations, with name allowed to occupy two lines and album count beneath it. Keep native vertical scrolling; no second custom drag gesture or magnifier overlay.
-7. Use native accessible button and sheet semantics, selected states, Dynamic Type, and labels. Dismissing a sheet must not change scope or position. A letter selection dismisses the picker and exposes the corresponding content. Preserve album-to-tracks and tapped-track playback.
+The old docs/design/phone-navigation-concept.html is retired, not an implementation reference.
 
-## Verification
+## Existing capabilities and affected code
 
-- Use the canonical SongrKit tests and separate simulator build from `.agents/repo-guidance.md`; preserve the owner's ignored Xcode project and signing overrides.
-- On the protected simulator, verify selector access to all seven scopes, navigation state on returning to a scope, and shelf refresh behavior.
-- Verify A → Z → M → A jumps, including repeated selection of a letter and drag-free dismissal. Compare heading and visible content, not just the picker selection. Check Artists, Albums, and Genres with both the offline preview and the real cached catalog.
-- Check portrait and landscape, minimum supported phone width, large text, and player bar present/absent. No clipped controls or horizontal chip scrolling; every sheet option remains reachable.
-- Verify VoiceOver selection and physical iOS 27 behavior when available. Do not claim simulator results prove the owner's physical-device behavior.
-- Update the verification record, state, and applicable phone decision when the approved implementation lands. Commit the completed slice and follow the repo push policy.
+- App/Sources/UI/RootView.swift owns the seven current scopes, chip row, retained panes, and refresh on revisits.
+- ArtistsView.swift owns the landed stable direct lazy heading/row targets. Preserve them; nested variable-height section containers failed long backward jumps. Evidence: docs/reviews/phone-jump-followup.md.
+- AlbumsGridView.swift and ScopeViews.swift own artwork grids, genres, playlists, and album shelves.
+- AppModel.swift already loads Genres, Playlists, Recently Added, Recently Played, and Most Played. These need better access, not placeholder implementations.
+- LibrarySource.swift models include album title, artist, and year; they lack added/play timestamps, play counts, favorites, and download APIs.
+- Plex/PlexSource.swift provides capped server-sorted shelves and authenticated direct-play requests. A capped shelf cannot stand in for whole-library sorting. No playback-history write API is present.
+- CatalogStore.swift persists artist/album metadata. AppModel uses Caches keyed by server/library; this is not durable downloaded media storage. Shelves and genre results currently live in memory.
+- PlayerEngine.swift constructs remote AVURLAssets from source.streamRequest(for:). Offline playback needs a local-file resolver and startup that does not require successful server discovery.
+
+## Feature implementation after approval
+
+### Sorting and recent views
+
+Persist sort choice per library/scope. Artists support name ascending/descending. Albums support title, artist, year, added date, and last played. Preserve playlist track order. Add optional timestamps to catalog models/Plex decoding for full-library sorts; old snapshots must still decode. Missing values sort last, ties use normalized name/title and stable ID.
+
+The rail remains visible under every sort. Alphabetic sorts target their sections; artist-sorted albums index artist names. Proposed nonalphabetical behavior: letters jump to the first matching album title in the displayed order without changing that order. Such matches are not contiguous; this interaction needs device review and must not silently change sort or remove the rail. Derive targets from the exact rendered sequence, mapping album items to their visual grid rows.
+
+Persist successful shelf/genre/playlist metadata so offline views can show saved data. Retain it on refresh failure. Record confirmed local playback progress in a durable history store shared by phone and CarPlay so Recently Played reflects Songr listening. Keep local events separate from server history, merge recency using the latest timestamp, and avoid double-counting play totals. Server history synchronization is a separate capability, not an assumed effect of streaming.
+
+### Favorites
+
+Proposed first scope: artists, albums, and tracks, saved locally in Songr. Add accessible favorite/unfavorite actions to relevant rows, details, and Now Playing. Favorites offers Artists, Albums, and Songs sections. Favoriting an artist does not implicitly favorite/download all music. Removing a favorite does not remove downloaded audio.
+
+Use a versioned atomic store in Application Support, keyed by account identity, backend, stable server ID, library ID, media kind, and item ID. Persist enough display metadata for offline use. Do not use tokens or transient server URLs as identities. Plex favorite synchronization is not included in the proposal.
+
+### Downloads and offline playback
+
+- Offer downloads for albums, individual tracks, and a snapshot of a playlist. Do not auto-download an artist's whole catalog or follow future playlist additions.
+- Use a persistent download manifest and app-level background URLSession coordinator with bounded concurrency. Deduplicate shared tracks across collections. Obtain credentials at request time; do not persist tokens in media URLs/manifests.
+- Save completed audio and required metadata/artwork in Application Support, excluded from backups. Publish ready state only after a successful, validated, playable download moves atomically from temporary storage. Unsupported media must fail visibly.
+- Reconcile tasks/files after restart; support queued/downloading/ready/failed states, progress, retry, cancellation, authentication failure, partial responses, and insufficient storage. Proposed default: Wi-Fi downloads, with a visible cellular override.
+- Downloads shows ready/partial states and storage used, plus Remove Download. Track shared collection ownership so removal does not break another retained collection; defer removing a file while playing it. Removing a download never deletes server media.
+- Persist track ordering, titles, artist labels, duration, artwork, and playlist snapshots so browsing and queue creation require no server request. Make partially downloaded collections clear.
+- Resolve playable local audio before requesting a remote stream. Do not silently count unavailable tracks as played or skip them without explanation.
+- Cold launch with saved content must reach the library/Downloads even when server discovery or authentication refresh fails. Retry connections behind the offline UI. Isolate account/library data and stop old-account tasks/playback on sign-out.
+- Share favorite data, offline metadata, history, and playback resolution with CarPlay. Expose Favorites and Downloads via supported templates within native budgets. Download/storage management stays on the phone.
+
+## Work order and verification
+
+The next owner ruling is the compact navigation layout. After approval, implement navigation/existing views and sorting, then favorites and download services/UI, then their CarPlay entry points. Do not ship inert feature controls in an intermediate slice. The separately approved CarPlay browse presentation work remains active under docs/plans/carplay-browse.md.
+
+- Shipping slices run canonical SongrKit tests and app build from .agents/repo-guidance.md, using the separate verification project to preserve owner signing overrides. Respect the protected simulator in .agents/machines.md.
+- Check narrow phone widths, portrait/landscape, large text, player bar present/absent, all menu destinations, selected states, navigation return, refresh, and VoiceOver. Compare available content space with the current UI.
+- Verify tap/drag A → Z → M → A and repeated letters for Artists/Albums with real catalog data under every sort. Check visible content, not just selected letters.
+- Test meaningful sorting/jump-map, persistence/isolation, backward decoding, history, manifest recovery, shared ownership, and local/remote playback behavior. Prove new regression tests fail with their fix removed, then restore.
+- Download an album and mixed playlist, terminate the app, relaunch without network/server access, and browse/play/skip/seek on phone and CarPlay. Cover missing/partial/corrupt downloads, low storage, reconnect, cancellation, removal during playback, and account/library changes.
+- Physical-device and background behavior remain unverified until exercised there; cached metadata or a warm app is not evidence of offline audio support.
+- Update records and commit each completed slice; follow .agents/push-policy.md. Existing AppModel/CarPlayBrowseController edits belong to their approved CarPlay slice and must not be staged with this planning revision.

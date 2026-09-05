@@ -14,6 +14,8 @@ pointed to, never copied; machine-specific facts (local toolchains, host layout,
 
 ## Now
 
+- The owner requested replacing the overflowing phone chips and poor scrolling controls. `docs/plans/phone-navigation.md` proposes one view selector and a full-size letter picker; `docs/design/phone-navigation-concept.html` is the interactive concept. This redesign awaits approval.
+
 - The artist jump correction now uses direct, stable row targets and has passed full-library portrait/landscape simulator checks. `docs/reviews/phone-jump-followup.md` owns the results and physical-device limitation.
 
 - The phone touch index is implemented under the owner's approved plan:
@@ -28,6 +30,8 @@ pointed to, never copied; machine-specific facts (local toolchains, host layout,
 - The owner approved the CarPlay slice in `docs/plans/carplay-browse.md`. Working implementation and unresolved visual checks are recorded in `docs/reviews/carplay-browse.md`; the artist presentation is not finalized.
 
 ## Next
+
+- Obtain the owner ruling on the proposed phone navigation, then implement the selected design under `docs/plans/phone-navigation.md`. Preserve the artist jump correction.
 
 - Reopen the CarPlay simulator display and complete the visual/navigation checks in `docs/reviews/carplay-browse.md` before finalizing the approved slice.
 - Check sustained-touch magnifier appearance, haptic feel, cancellation, and
@@ -57,6 +61,8 @@ pointed to, never copied; machine-specific facts (local toolchains, host layout,
 - `.agents/decisions.md`
 - `.agents/machines.md` (including the protected simulator rule)
 - `docs/plans/phone-touch-index.md`
+- `docs/plans/phone-navigation.md` (proposed)
+- `docs/reviews/phone-jump-followup.md`
 - `docs/plans/carplay-browse.md` (approved; implementation in progress)
 - `docs/reviews/carplay-browse.md`
 

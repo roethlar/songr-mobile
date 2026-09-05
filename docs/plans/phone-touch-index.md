@@ -33,8 +33,7 @@ letter. CarPlay is the product's priority and is the next work item.
 
 ## Next
 
-Assess the current CarPlay UI and prepare a concrete improvement plan.
-CarPlay implementation requires approval of that plan.
+The owner requested reimagining the scope chips and scroll controls. The replacement is proposed in `docs/plans/phone-navigation.md`; it has not superseded this plan's controls yet. CarPlay has a separate approved plan in `docs/plans/carplay-browse.md`.
 
 ## Device follow-up (2026-09-04)
 

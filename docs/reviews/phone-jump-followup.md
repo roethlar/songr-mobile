@@ -1,6 +1,6 @@
 # Phone artist jump correction
 
-Date: 2026-09-04. Scope: the already approved jump behavior in `docs/plans/phone-touch-index.md`, following the owner's physical-phone report. Source baseline: cf15016 (phone code unchanged from 4bea466).
+Date: 2026-09-04. Implementation: 13509f4. Scope: the already approved jump behavior in `docs/plans/phone-touch-index.md`, following the owner's physical-phone report. Source baseline: cf15016 (phone code unchanged from 4bea466).
 
 ## Defect and correction
 
@@ -22,4 +22,4 @@ A section-VStack attempt corrected missing rows in a small catalog but still lan
 
 ## Navigation redesign
 
-The owner subsequently requested reimagining the overflowing scope chips and scrolling controls. That is a separate design decision; this correction does not change the current rail or scope navigation. See `docs/plans/phone-navigation.md` for the proposed replacement once its record lands.
+The owner subsequently requested reimagining the overflowing scope chips and scrolling controls. That is a separate design decision; this correction does not change the current rail or scope navigation. See `docs/plans/phone-navigation.md` for the proposed replacement.

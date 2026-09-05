@@ -23,14 +23,11 @@ pointed to, never copied; machine-specific facts (local toolchains, host layout,
   the older blanket claims that device setup and CarPlay entitlement approval
   necessarily block testing are superseded by that evidence. Real-car
   behavior has not yet been verified.
-- CarPlay is the next priority and the app's main purpose, per the owner.
-  Current source assessment and a proposed first implementation slice are in
-  `docs/plans/carplay-browse.md`; that slice is not yet approved.
+- The owner approved the CarPlay slice in `docs/plans/carplay-browse.md`. Working implementation and unresolved visual checks are recorded in `docs/reviews/carplay-browse.md`; the artist presentation is not finalized.
 
 ## Next
 
-- Review and approve the proposed CarPlay browsing slice, then verify the new
-  presentation and full-library reachability against the captured baseline.
+- Reopen the CarPlay simulator display and complete the visual/navigation checks in `docs/reviews/carplay-browse.md` before finalizing the approved slice.
 - Check sustained-touch magnifier appearance, haptic feel, cancellation, and
   VoiceOver on a device after rebuilding the phone change.
 - Keep the pre-existing artist-row defect visible in the queue; its baseline
@@ -38,10 +35,9 @@ pointed to, never copied; machine-specific facts (local toolchains, host layout,
 
 ## Blockers and open questions
 
-- A current CarPlay simulator baseline is now recorded in the proposed plan.
-  There is still no real-car verification or full catalog-count comparison.
+- CarPlay final visual verification remains outstanding. The display became available during phone testing; presentation and native capacity evidence are in `docs/reviews/carplay-browse.md`.
 - The owner has not yet confirmed whether their CarPlay input is touch,
-  rotary/buttons, or both. The proposed plan preserves both input styles.
+  rotary/buttons, or both. The approved plan preserves both input styles.
 - The ignored generated project contains owner signing changes that are not
   represented in project.yml. Preserve them; see `.agents/machines.md`.
 - `docs/plans/music-player-v1.md` still labels its server-based v2 plan ACTIVE,
@@ -60,7 +56,8 @@ pointed to, never copied; machine-specific facts (local toolchains, host layout,
 - `.agents/decisions.md`
 - `.agents/machines.md` (including the protected simulator rule)
 - `docs/plans/phone-touch-index.md`
-- `docs/plans/carplay-browse.md` (proposed, not approved)
+- `docs/plans/carplay-browse.md` (approved; implementation in progress)
+- `docs/reviews/carplay-browse.md`
 
 ## Unrecorded Repo Memory
 

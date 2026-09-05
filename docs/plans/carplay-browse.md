@@ -1,6 +1,6 @@
 # CarPlay browsing
 
-Status: PROPOSED 2026-09-04; awaiting approval for implementation.
+Status: APPROVED 2026-09-04 by owner go; working implementation awaiting visual validation.
 
 ## Goal
 
@@ -8,7 +8,7 @@ Make the main car interaction quick and legible: jump to an artist or album,
 recognize the result, and play the desired track. CarPlay is the product's
 primary use case. The phone touch-index change does not alter CarPlay.
 
-## Current evidence
+## Baseline evidence (before this slice)
 
 The native controller is `App/Sources/CarPlay/CarPlayBrowseController.swift`.
 On iOS 26 and later, Artists uses condensed image-row elements with blank
@@ -32,7 +32,7 @@ counts. Baseline screenshots: `.agents/screenshots/carplay-before-artists.png`,
 `carplay-before-z.png` in the same directory. Older smoke screenshots may
 represent different builds.
 
-## Proposed first slice
+## Approved first slice
 
 1. Use the native iOS 26+ row element for readable artist names and album
    counts, retaining the continuous library and native alphabet index.
@@ -51,6 +51,12 @@ represent different builds.
 Apple's templates own CarPlay touch and controller gestures. The phone's
 custom drag/magnifier is not a CarPlay overlay. Input method is not yet
 confirmed by the owner, so preserve both touch and rotary/button navigation.
+
+## Implementation findings
+
+Verification and the current UI roadblock are recorded in `docs/reviews/carplay-browse.md`. The proposed row-element API rendered artwork tiles in the simulator, so the artist presentation is not yet settled. A card-element candidate is in the working tree and must be inspected before finalizing.
+
+The capacity check found an existing 24-element-per-item truncation. Batching within each indexed section is part of this slice's full-library requirement. A process sample also identified excessive template serialization during cover loading; the working change publishes completed artwork batches to make the new cards usable. This is a targeted prerequisite, not the broader artwork policy redesign.
 
 ## Follow-up
 

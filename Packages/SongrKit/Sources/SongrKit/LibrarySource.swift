@@ -25,17 +25,25 @@ public struct Album: Codable, Hashable, Sendable, Identifiable {
     public let artistID: String
     public let artistName: String
     public let year: Int?
+    /// Optional server facts; old catalog snapshots decode these as nil.
+    public let addedAt: Date?
+    public let lastPlayedAt: Date?
+    public let playCount: Int?
     /// Backend-relative artwork path (e.g. Plex `/library/metadata/…/thumb/…`);
     /// resolve to a fetchable request via `LibrarySource.artworkRequest`.
     public let thumbPath: String?
 
     public init(id: String, title: String, artistID: String, artistName: String,
-                year: Int?, thumbPath: String?) {
+                year: Int?, thumbPath: String?, addedAt: Date? = nil,
+                lastPlayedAt: Date? = nil, playCount: Int? = nil) {
         self.id = id
         self.title = title
         self.artistID = artistID
         self.artistName = artistName
         self.year = year
+        self.addedAt = addedAt
+        self.lastPlayedAt = lastPlayedAt
+        self.playCount = playCount
         self.thumbPath = thumbPath
     }
 }

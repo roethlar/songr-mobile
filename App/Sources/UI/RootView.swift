@@ -69,10 +69,7 @@ private struct FailureScreen: View {
 
 // MARK: - The shell
 
-/// Browse scopes, in the web chip row's build-v5 order (Artists · Albums ·
-/// Genres · Recently played · Most played · Playlists · Recently added;
-/// "Surprise me" has no mobile equivalent yet). Raw values double as
-/// `-SongrPreviewScope` arguments.
+/// Native library destinations. Raw values also serve the preview harness.
 enum BrowseScope: String, CaseIterable {
     case artists
     case albums
@@ -93,11 +90,79 @@ enum BrowseScope: String, CaseIterable {
         case .recentlyAdded: "Recently added"
         }
     }
+
+    static let primary: [BrowseScope] = [.artists, .albums, .recentlyAdded, .recentlyPlayed]
+    static let secondary: [BrowseScope] = [.genres, .mostPlayed, .playlists]
+
+    var compactLabel: String {
+        switch self {
+        case .recentlyAdded: "Added"
+        case .recentlyPlayed: "Played"
+        default: label
+        }
+    }
+
+    var symbol: String {
+        switch self {
+        case .artists: "person.2"
+        case .albums: "square.stack"
+        case .genres: "tag"
+        case .recentlyAdded: "calendar.badge.plus"
+        case .recentlyPlayed: "clock"
+        case .mostPlayed: "chart.bar"
+        case .playlists: "music.note.list"
+        }
+    }
+
+    var isIndexed: Bool { self == .artists || self == .albums || self == .genres }
+
+    var sortFields: [CatalogSortField] {
+        switch self {
+        case .artists: CatalogSortField.artistFields
+        case .albums: CatalogSortField.albumFields
+        default: [.name]
+        }
+    }
 }
 
-/// The songr app frame, mirroring the web's `.u-app`: header bar (wordmark +
-/// settings), a scope-chip row of its own (never crammed into the header, so
-/// nothing clips in either orientation), the browse pane, and the player bar.
+extension CatalogSortField {
+    func label(for scope: BrowseScope) -> String {
+        switch self {
+        case .name: scope == .albums ? "Title" : "Name"
+        case .artist: "Artist"
+        case .year: "Year"
+        case .dateAdded: "Date added"
+        case .lastPlayed: "Last played"
+        case .playCount: "Play count"
+        case .albumCount: "Album count"
+        }
+    }
+}
+
+struct BrowseOrder: Hashable {
+    var field: CatalogSortField = .name
+    var direction: CatalogSortDirection = .ascending
+
+    var isAlphabetical: Bool { field == .name || field == .artist }
+
+    func directionLabel(_ direction: CatalogSortDirection) -> String {
+        if isAlphabetical { return direction == .ascending ? "A–Z" : "Z–A" }
+        if field == .playCount || field == .albumCount {
+            return direction == .ascending ? "Fewest first" : "Most first"
+        }
+        return direction == .ascending ? "Oldest first" : "Newest first"
+    }
+
+    func apply<Element>(to sections: [CatalogSection<Element>]) -> [CatalogSection<Element>] {
+        guard direction == .descending else { return sections }
+        let letters = sections.filter { $0.title != "#" }.reversed()
+        return (Array(letters) + sections.filter { $0.title == "#" }).map {
+            CatalogSection(title: $0.title, items: Array($0.items.reversed()))
+        }
+    }
+}
+
+/// Candidate B: one compact header above the retained browse panes/player.
 struct SongrShell: View {
     @EnvironmentObject private var model: AppModel
     @State private var scope: BrowseScope
@@ -108,6 +173,12 @@ struct SongrShell: View {
     @State private var visited: Set<BrowseScope>
     @State private var showNowPlaying: Bool
     @State private var showSettings = false
+    @State private var paneAtRoot: [BrowseScope: Bool] = [:]
+    @AppStorage("songr.phone.artists.order") private var artistDirection = CatalogSortDirection.ascending
+    @AppStorage("songr.phone.albums.order") private var albumDirection = CatalogSortDirection.ascending
+    @AppStorage("songr.phone.genres.order") private var genreDirection = CatalogSortDirection.ascending
+    @AppStorage("songr.phone.artists.sort") private var artistSort = CatalogSortField.name
+    @AppStorage("songr.phone.albums.sort") private var albumSort = CatalogSortField.name
 
     init() {
         var initialScope = BrowseScope.artists
@@ -130,15 +201,19 @@ struct SongrShell: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            headerBar
-            chipRow
-            Rectangle().fill(SongrTheme.line).frame(height: 1)
+            BrowseHeader(scope: scope, order: orderBinding(for: scope),
+                         canSort: scope.isIndexed && paneAtRoot[scope, default: true],
+                         isRefreshing: model.isRefreshing, select: select,
+                         openSettings: { showSettings = true })
             ZStack {
                 ForEach(BrowseScope.allCases, id: \.self) { paneScope in
                     if visited.contains(paneScope) {
-                        BrowsePane(scope: paneScope)
+                        BrowsePane(scope: paneScope, order: orderBinding(for: paneScope).wrappedValue) {
+                            paneAtRoot[paneScope] = $0
+                        }
                             .opacity(scope == paneScope ? 1 : 0)
                             .allowsHitTesting(scope == paneScope)
+                            .accessibilityHidden(scope != paneScope)
                     }
                 }
             }
@@ -152,49 +227,19 @@ struct SongrShell: View {
         .sheet(isPresented: $showSettings) { SettingsView() }
     }
 
-    /// `.bar` — wordmark left, settings right; hairline underneath.
-    private var headerBar: some View {
-        HStack(spacing: 12) {
-            SongrWordmark(size: 13)
-            if model.isRefreshing {
-                ProgressView()
-                    .tint(SongrTheme.dim)
-                    .scaleEffect(0.7)
-            }
-            Spacer()
-            SongrBarButton(label: "Settings") { showSettings = true }
+    private func orderBinding(for scope: BrowseScope) -> Binding<BrowseOrder> {
+        switch scope {
+        case .artists:
+            Binding(get: { BrowseOrder(field: artistSort, direction: artistDirection) },
+                    set: { artistSort = $0.field; artistDirection = $0.direction })
+        case .albums:
+            Binding(get: { BrowseOrder(field: albumSort, direction: albumDirection) },
+                    set: { albumSort = $0.field; albumDirection = $0.direction })
+        case .genres:
+            Binding(get: { BrowseOrder(direction: genreDirection) },
+                    set: { genreDirection = $0.direction })
+        default: .constant(BrowseOrder())
         }
-        .padding(.horizontal, 18)
-        .padding(.vertical, 12)
-        .background(SongrTheme.header)
-        .overlay(alignment: .bottom) {
-            Rectangle().fill(SongrTheme.line).frame(height: 1)
-        }
-    }
-
-    /// `.scopes` — the chip row lives on its own line with a fixed height,
-    /// so chips can never be half cut off by a title or a rotation.
-    private var chipRow: some View {
-        ScrollViewReader { proxy in
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 8) {
-                    ForEach(BrowseScope.allCases, id: \.self) { chipScope in
-                        SongrChip(label: chipScope.label, isOn: scope == chipScope) {
-                            select(chipScope)
-                        }
-                        .id(chipScope)
-                    }
-                }
-                .padding(.horizontal, 18)
-                .padding(.vertical, 10)
-            }
-            // The active chip is never left half-clipped at an edge.
-            .onAppear { proxy.scrollTo(scope) }
-            .onChange(of: scope) { _, newScope in
-                withAnimation { proxy.scrollTo(newScope) }
-            }
-        }
-        .background(SongrTheme.header)
     }
 
     private func select(_ newScope: BrowseScope) {
@@ -210,11 +255,181 @@ struct SongrShell: View {
     }
 }
 
+/// Compact visual labels use full-height, separate touch targets. Every
+/// primary destination stays directly accessible, including both recents.
+private struct BrowseHeader: View {
+    let scope: BrowseScope
+    @Binding var order: BrowseOrder
+    let canSort: Bool
+    let isRefreshing: Bool
+    let select: (BrowseScope) -> Void
+    let openSettings: () -> Void
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
+    var body: some View {
+        HStack(spacing: 0) {
+            Group {
+                if dynamicTypeSize.isAccessibilitySize {
+                    navigationRow(showBrand: false, iconsOnly: true)
+                } else {
+                    ViewThatFits(in: .horizontal) {
+                        navigationRow(showBrand: true, iconsOnly: false)
+                        navigationRow(showBrand: false, iconsOnly: false)
+                        navigationRow(showBrand: false, iconsOnly: true)
+                    }
+                }
+            }
+            Spacer(minLength: 0)
+            // Keep each native menu in one stable place as the primary labels adapt.
+            libraryMenu
+            if canSort { sortMenu }
+        }
+        .padding(.horizontal, 6)
+        .frame(maxWidth: .infinity, minHeight: 44)
+        .background(SongrTheme.header)
+        .overlay(alignment: .bottom) {
+            Rectangle().fill(SongrTheme.line).frame(height: 1)
+        }
+        .accessibilityIdentifier("browse-header")
+    }
+
+    private func navigationRow(showBrand: Bool, iconsOnly: Bool) -> some View {
+        HStack(spacing: 0) {
+            if showBrand { wordmark }
+            ForEach(BrowseScope.primary, id: \.self) { destination in
+                scopeButton(destination, iconsOnly: iconsOnly)
+            }
+        }
+    }
+
+    private var wordmark: some View {
+        SongrWordmark(size: 10)
+            .frame(width: 34, height: 44)
+            .overlay(alignment: .bottom) {
+                if isRefreshing {
+                    ProgressView()
+                        .controlSize(.mini)
+                        .scaleEffect(0.5)
+                        .frame(height: 8)
+                        .accessibilityLabel("Refreshing library")
+                }
+            }
+    }
+
+    private func scopeButton(_ destination: BrowseScope, iconsOnly: Bool) -> some View {
+        Button { select(destination) } label: {
+            Group {
+                if iconsOnly {
+                    headerIcon(destination.symbol, selected: scope == destination)
+                } else {
+                    headerLabel(destination.compactLabel, selected: scope == destination)
+                }
+            }
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(destination.label)
+        .accessibilityAddTraits(scope == destination ? .isSelected : [])
+        .accessibilityIdentifier("browse-\(destination.rawValue)")
+    }
+
+    private var libraryMenu: some View {
+        let selected = BrowseScope.secondary.contains(scope)
+        return Menu {
+            Picker("Library", selection: Binding(get: { scope }, set: select)) {
+                ForEach(BrowseScope.secondary, id: \.self) { destination in
+                    Label(destination.label, systemImage: destination.symbol)
+                        .tag(destination)
+                }
+            }
+            .pickerStyle(.inline)
+            Divider()
+            Button("Settings", systemImage: "gearshape", action: openSettings)
+        } label: {
+            headerIcon("ellipsis", selected: selected)
+        }
+        .menuIndicator(.hidden)
+        .menuStyle(.borderlessButton)
+        .accessibilityLabel("More library views")
+        .accessibilityValue(selected ? scope.label : "")
+        .accessibilityIdentifier("browse-more")
+    }
+
+    private var sortMenu: some View {
+        Menu {
+            if scope.sortFields.count > 1 {
+                Picker("Sort by", selection: Binding(get: { order.field }, set: { field in
+                    order = BrowseOrder(field: field, direction: field.defaultDirection)
+                })) {
+                    ForEach(scope.sortFields, id: \.self) { field in
+                        Text(field.label(for: scope)).tag(field)
+                    }
+                }
+                .pickerStyle(.inline)
+                Divider()
+            }
+            Picker("Order", selection: $order.direction) {
+                ForEach(CatalogSortDirection.allCases, id: \.self) { direction in
+                    Text(order.directionLabel(direction)).tag(direction)
+                }
+            }
+            .pickerStyle(.inline)
+        } label: {
+            Image(systemName: "arrow.up.arrow.down")
+                .font(.system(size: 17, weight: .regular))
+                .foregroundStyle(SongrTheme.soft)
+                .frame(width: 44, height: 44)
+                .contentShape(Rectangle())
+        }
+        .menuIndicator(.hidden)
+        .menuStyle(.borderlessButton)
+        .accessibilityLabel("Sort \(scope.label)")
+        .accessibilityValue("\(order.field.label(for: scope)), \(order.directionLabel(order.direction))")
+        .accessibilityIdentifier("browse-sort")
+    }
+
+    private func headerLabel(_ title: String, selected: Bool) -> some View {
+        Text(title)
+        .font(.custom(SongrTheme.Weight.medium.face, size: 13, relativeTo: .subheadline))
+        .fixedSize(horizontal: true, vertical: false)
+        .foregroundStyle(selected ? SongrTheme.accentBright : SongrTheme.soft)
+        .padding(.horizontal, 5)
+        .padding(.vertical, 6)
+        .frame(minWidth: 44, minHeight: 44)
+        .overlay(alignment: .bottom) {
+            if selected {
+                Rectangle().fill(SongrTheme.accent)
+                    .frame(height: 1)
+                    .padding(.horizontal, 7)
+                    .padding(.bottom, 6)
+            }
+        }
+        .contentShape(Rectangle())
+    }
+
+    private func headerIcon(_ symbol: String, selected: Bool) -> some View {
+        Image(systemName: symbol)
+            .font(.system(size: 17, weight: .regular))
+            .foregroundStyle(selected ? SongrTheme.accentBright : SongrTheme.soft)
+            .frame(width: 44, height: 44)
+            .overlay(alignment: .bottom) {
+                if selected {
+                    Rectangle().fill(SongrTheme.accent)
+                        .frame(height: 1)
+                        .padding(.horizontal, 7)
+                        .padding(.bottom, 6)
+                }
+            }
+            .contentShape(Rectangle())
+    }
+}
+
 /// One scope's navigation stack (list → artist → album), songr-chromed:
 /// the system navigation bar stays hidden; pushed views draw the web's
 /// `.ctx` back row instead.
 private struct BrowsePane: View {
     let scope: BrowseScope
+    let order: BrowseOrder
+    let reportRoot: (Bool) -> Void
     @EnvironmentObject private var model: AppModel
     @State private var path = NavigationPath()
 
@@ -222,9 +437,9 @@ private struct BrowsePane: View {
         NavigationStack(path: $path) {
             Group {
                 switch scope {
-                case .artists: ArtistsView()
-                case .albums: AlbumsGridView()
-                case .genres: GenresView()
+                case .artists: ArtistsView(order: order)
+                case .albums: AlbumsGridView(order: order)
+                case .genres: GenresView(order: order)
                 case .playlists: PlaylistsView()
                 case .recentlyAdded, .recentlyPlayed, .mostPlayed:
                     AlbumShelfView(scope: scope)
@@ -247,6 +462,9 @@ private struct BrowsePane: View {
                 PlaylistDetailView(playlist: playlist)
                     .toolbar(.hidden, for: .navigationBar)
             }
+        }
+        .onChange(of: path.count, initial: true) { _, count in
+            reportRoot(count == 0)
         }
         .onAppear {
             #if DEBUG

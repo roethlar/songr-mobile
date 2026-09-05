@@ -67,6 +67,9 @@ public actor PlexSource: LibrarySource {
             let index: Int?
             let parentIndex: Int?
             let year: Int?
+            let addedAt: Double?
+            let lastViewedAt: Double?
+            let viewCount: Int?
             let duration: Int?
             let thumb: String?
             let parentThumb: String?
@@ -192,7 +195,12 @@ public actor PlexSource: LibrarySource {
                          artistID: item.parentRatingKey ?? "",
                          artistName: item.parentTitle ?? "Unknown Artist",
                          year: item.year,
-                         thumbPath: item.thumb ?? item.parentThumb)
+                         thumbPath: item.thumb ?? item.parentThumb,
+                         addedAt: item.addedAt.map(Date.init(timeIntervalSince1970:)),
+                         lastPlayedAt: item.lastViewedAt.flatMap {
+                             $0 > 0 ? Date(timeIntervalSince1970: $0) : nil
+                         },
+                         playCount: item.viewCount)
         }
     }
 

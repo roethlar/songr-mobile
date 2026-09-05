@@ -12,24 +12,34 @@ import SwiftUI
 /// each letter group flowing top-to-bottom then across, CSS-columns order.
 struct ArtistsView: View {
     @EnvironmentObject private var model: AppModel
+    var order = BrowseOrder()
+
+    private var artists: [Artist] {
+        CatalogOrdering.artists(model.snapshot?.artists ?? [], by: order.field, direction: order.direction)
+    }
 
     private var sections: [CatalogSection<Artist>] {
-        model.snapshot?.artistSections() ?? []
+        if order.isAlphabetical {
+            return CatalogOrdering.alphabeticalSections(artists, name: \.name, direction: order.direction)
+        }
+        return [CatalogSection(title: order.field.label(for: .artists), items: artists)]
     }
 
     var body: some View {
         GeometryReader { geometry in
             let columns = Self.columnCount(for: geometry.size.width)
+            let rows = browseRows(columns: columns)
+            let targets = jumpTargets(rows: rows)
             ScrollViewReader { proxy in
                 HStack(spacing: 0) {
-                    AlphaJumpRail(activeTitles: Set(sections.map(\.title))) { title in
-                        proxy.scrollTo(anchor(title), anchor: .top)
+                    AlphaJumpRail(activeTitles: Set(targets.keys), indexLabel: "Jump by artist name") { title in
+                        if let target = targets[title] { proxy.scrollTo(target, anchor: .top) }
                     }
                     .zIndex(1)  // the scrub bubble rides over the list
                     Rectangle().fill(SongrTheme.line).frame(width: 1)
                     ScrollView {
                         LazyVStack(alignment: .leading, spacing: 0) {
-                            ForEach(browseRows(columns: columns)) { row in
+                            ForEach(rows) { row in
                                 if let title = row.heading {
                                     SongrGroupHeading(title: title)
                                 } else {
@@ -44,6 +54,7 @@ struct ArtistsView: View {
                 }
                 .background(SongrTheme.bg)
             }
+            .id(order)
         }
     }
 
@@ -55,6 +66,18 @@ struct ArtistsView: View {
     }
 
     private func anchor(_ title: String) -> String { "artists-\(title)" }
+
+    private func jumpTargets(rows: [ArtistBrowseRow]) -> [String: String] {
+        if order.isAlphabetical {
+            return Dictionary(uniqueKeysWithValues: sections.map { ($0.title, anchor($0.title)) })
+        }
+        let first = CatalogOrdering.firstLetterIndices(artists, name: \.name)
+        var rowForArtist: [String: String] = [:]
+        for row in rows {
+            for artist in row.artists.compactMap({ $0 }) { rowForArtist[artist.id] = row.id }
+        }
+        return first.compactMapValues { rowForArtist[artists[$0].id] }
+    }
 
     // Every heading and visual row is a direct lazy-stack child. Nested
     // variable-length sections can reuse rows or estimate the wrong jump offset.
@@ -150,10 +173,11 @@ struct DottedLeader: View {
 /// wrapping the alphabet over the content (owner approval, 2026-09-04).
 struct AlphaJumpRail: View {
     let activeTitles: Set<String>
+    var indexLabel = "Alphabetical index"
     let onSelect: (String) -> Void
 
     private let titles = CatalogIndexer.sectionTitles
-    private let railWidth: CGFloat = 44
+    static let railWidth: CGFloat = 44
     private let verticalPadding: CGFloat = 8
 
     @GestureState private var isInteracting = false
@@ -168,13 +192,14 @@ struct AlphaJumpRail: View {
             VStack(spacing: 0) {
                 ForEach(titles, id: \.self) { title in
                     Text(title)
-                        .font(SongrTheme.font(min(13, max(1, cellHeight - 1)), .demiBold))
+                        .font(.custom(SongrTheme.Weight.demiBold.face,
+                                      fixedSize: min(13, max(1, cellHeight - 1))))
                         .foregroundStyle(letterColor(title))
-                        .frame(width: railWidth, height: cellHeight)
+                        .frame(width: Self.railWidth, height: cellHeight)
                 }
             }
             .padding(.vertical, verticalPadding)
-            .frame(width: railWidth, height: height, alignment: .top)
+            .frame(width: Self.railWidth, height: height, alignment: .top)
             .contentShape(Rectangle())
             .gesture(
                 DragGesture(minimumDistance: 0)
@@ -194,7 +219,7 @@ struct AlphaJumpRail: View {
                    let index = titles.firstIndex(of: title) {
                     let centerY = verticalPadding + (CGFloat(index) + 0.5) * cellHeight
                     Text(title)
-                        .font(SongrTheme.font(36, .demiBold))
+                        .font(.custom(SongrTheme.Weight.demiBold.face, fixedSize: 36))
                         .foregroundStyle(activeTitles.contains(title) ? SongrTheme.text : SongrTheme.soft)
                         .frame(width: 64, height: 64)
                         .background(SongrTheme.raise, in: RoundedRectangle(cornerRadius: 16))
@@ -203,7 +228,7 @@ struct AlphaJumpRail: View {
                                 .strokeBorder(SongrTheme.lineStrong, lineWidth: 1)
                         }
                         .shadow(color: SongrTheme.shadow, radius: 8, y: 3)
-                        .position(x: railWidth + 44,
+                        .position(x: Self.railWidth + 44,
                                   y: min(max(centerY, 32), max(height - 32, 32)))
                         .allowsHitTesting(false)
                         .accessibilityHidden(true)
@@ -215,11 +240,11 @@ struct AlphaJumpRail: View {
             }
             .onChange(of: height) { _, _ in scrubTitle = nil }
         }
-        .frame(width: railWidth)
+        .frame(width: Self.railWidth)
         .background(SongrTheme.rail)
         .allowsHitTesting(!activeTitles.isEmpty)
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("Alphabetical index")
+        .accessibilityLabel(indexLabel)
         .accessibilityValue(selectedTitle ?? availableTitles.first ?? "")
         .accessibilityHint("Swipe up or down to jump between letters.")
         .accessibilityAdjustableAction { direction in

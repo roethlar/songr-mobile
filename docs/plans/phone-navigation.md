@@ -1,6 +1,6 @@
 # Phone library navigation and saved music
 
-Status: LAYOUT SELECTED 2026-09-04 — candidate B (owner wording: "B"). The owner rejected replacing the jump rail and then rejected a larger, two-row chip layout. Requirements: less screen space, touch friendly, simple. The selected navigation contract is below; detailed sorting and saved-music implementation remains proposed. Previously approved phone jump and CarPlay work retain their own authorization.
+Status: B HEADER AND SORTING IMPLEMENTED — verification: `docs/reviews/phone-navigation.md`. Implementation approved — owner wording: "okay, go", after selecting B and being told the next action was applying it to the phone UI. The owner then required direct Recently Added/Recently Played access and sorting beyond alphabetical order. This slice covers the compact header, existing destinations, and full-catalog sorting. Favorites, local history, and offline Downloads remain subsequent functional slices. Previously approved phone jump and CarPlay work retain their own authorization.
 
 ## Required behavior
 
@@ -14,15 +14,15 @@ Status: LAYOUT SELECTED 2026-09-04 — candidate B (owner wording: "B"). The own
 One 44-point row combines the brand/header and navigation, replacing both
 the separate header and horizontal chip scroller:
 
-    [Songr mark]    Artists    Albums    More ∨    [sort icon]
+    [Songr mark]    Artists    Albums    Added    Played    […]    [sort icon]
 
-1. Artists and Albums remain directly selectable. More opens a native menu containing Genres, Recently Added, Recently Played, Most Played, Playlists, Favorites, and Downloads, with Settings in a separated final group. The active destination is checked. Dismissing the menu changes nothing.
+1. Artists, Albums, Recently Added, and Recently Played remain directly selectable. The owner explicitly corrected the implementation on 2026-09-05: "recently added and recently played cannot hide behind a dropdown". Use Added and Played as their compact visible labels, with full accessibility names. More uses an ellipsis icon and contains Genres, Most Played, Playlists, and Settings; Favorites/Downloads join it when functional. The active destination is checked. Dismissing the menu changes nothing.
 2. Keep this row around 44 points high at ordinary text sizes. Use compact text and restrained selection styling, with non-overlapping full-height hit areas of at least 44×44 points. No large tiles, two-row shortcut dashboard, or horizontal scrolling.
 3. The sort icon opens contextual sorting choices; it does not add another permanent toolbar. It has an accessible Sort label and selected order announcement.
-4. When a secondary scope is active, More carries a selected state. Show its full name in the existing content heading rather than expanding the chip label or adding a permanent heading row.
-5. Adapt for landscape and Dynamic Type without clipping or overlapping targets. At accessibility text sizes, allow an explicit compact menu fallback for scope selection; do not shrink text or hide the jump rail.
+4. When a secondary scope is active, More carries a selected state. Show its full name in the scrollable content heading rather than expanding the chip label or adding a permanent heading row.
+5. Adapt for landscape and Dynamic Type without clipping or overlapping targets. Drop the decorative mark before shortening access. When scaled labels cannot fit, use individually accessible icons for all four primary destinations, More, and Sort; do not move either recent view into a menu. Keep at least 44-point targets and the visible jump rail.
 6. Reuse SongrShell.select(_:), visited panes, and per-pane NavigationPath so scope switches preserve browsing position and shelf refresh behavior. Settings is reached through More; the player bar retains its existing position. Hidden panes must not receive accessibility focus.
-7. The tradeoff is an extra tap for the secondary destinations. The owner's preference for compact navigation takes precedence over giving every destination a permanent chip.
+7. The tradeoff is an extra tap for secondary destinations. Both recent views are primary destinations and must remain one tap away.
 
 The old docs/design/phone-navigation-concept.html is retired, not an implementation reference.
 
@@ -35,24 +35,33 @@ contract. A and C remain comparison alternatives only.
 
 ## Existing capabilities and affected code
 
-- App/Sources/UI/RootView.swift owns the seven current scopes, chip row, retained panes, and refresh on revisits.
-- ArtistsView.swift owns the landed stable direct lazy heading/row targets. Preserve them; nested variable-height section containers failed long backward jumps. Evidence: docs/reviews/phone-jump-followup.md.
-- AlbumsGridView.swift and ScopeViews.swift own artwork grids, genres, playlists, and album shelves.
-- AppModel.swift already loads Genres, Playlists, Recently Added, Recently Played, and Most Played. These need better access, not placeholder implementations.
-- LibrarySource.swift models include album title, artist, and year; they lack added/play timestamps, play counts, favorites, and download APIs.
-- Plex/PlexSource.swift provides capped server-sorted shelves and authenticated direct-play requests. A capped shelf cannot stand in for whole-library sorting. No playback-history write API is present.
-- CatalogStore.swift persists artist/album metadata. AppModel uses Caches keyed by server/library; this is not durable downloaded media storage. Shelves and genre results currently live in memory.
-- PlayerEngine.swift constructs remote AVURLAssets from source.streamRequest(for:). Offline playback needs a local-file resolver and startup that does not require successful server discovery.
+- `App/Sources/UI/RootView.swift` owns the compact header, retained panes, per-scope sort preferences, and refresh on revisits.
+- `ArtistsView.swift` keeps the stable direct lazy heading/row targets from `docs/reviews/phone-jump-followup.md` and derives letter targets from the rendered sort order.
+- `AlbumsGridView.swift` renders concrete artwork rows with native scroll-position tracking. Scroll state lives below the catalog-ordering computation and resets only when its sort changes.
+- `ScopeViews.swift` owns genres, playlists, and album shelves. Existing recent views use server ordering.
+- `LibrarySource.swift` and `Plex/PlexSource.swift` now include optional album added/play timestamps and play counts for full-catalog sorts. Missing fields in older snapshots still decode. Favorites, downloads, and playback-history writes remain future capabilities.
+- `CatalogStore.swift` persists artist/album metadata in Caches, keyed by server/library. This is not durable downloaded media storage; shelves and genre results still live in memory.
+- `PlayerEngine.swift` constructs remote AVURLAssets from `source.streamRequest(for:)`. Offline playback needs a local-file resolver and startup that can show saved content without successful server discovery.
 
 ## Feature implementation after approval
 
-### Sorting and recent views
+### Approved B slice boundary
 
-Persist sort choice per library/scope. Artists support name ascending/descending. Albums support title, artist, year, added date, and last played. Preserve playlist track order. Add optional timestamps to catalog models/Plex decoding for full-library sorts; old snapshots must still decode. Missing values sort last, ties use normalized name/title and stable ID.
+Implement the selected header with the existing seven browse scopes and Settings. Artists, Albums, Added, and Played stay directly accessible. Preserve navigation and scroll position on ordinary scope switches; reset only the sorted root when its order changes. Hide Sort on pushed pages and shelves with fixed ordering. Secondary scope headings scroll with content. Favorites/Downloads controls arrive with their functional slices.
 
-The rail remains visible under every sort. Alphabetic sorts target their sections; artist-sorted albums index artist names. Proposed nonalphabetical behavior: letters jump to the first matching album title in the displayed order without changing that order. Such matches are not contiguous; this interaction needs device review and must not silently change sort or remove the rail. Derive targets from the exact rendered sequence, mapping album items to their visual grid rows.
+Sorting is contextual, with a field and direction picker:
 
-Persist successful shelf/genre/playlist metadata so offline views can show saved data. Retain it on refresh failure. Record confirmed local playback progress in a durable history store shared by phone and CarPlay so Recently Played reflects Songr listening. Keep local events separate from server history, merge recency using the latest timestamp, and avoid double-counting play totals. Server history synchronization is a separate capability, not an assumed effect of streaming.
+- Artists: Name (A–Z/Z–A), Album count (Most/Fewest first).
+- Albums: Title, Artist (A–Z/Z–A); Year, Date added, Last played (Newest/Oldest first); Play count (Most/Fewest first).
+- Genres: Name (A–Z/Z–A).
+
+Persist field/direction per scope on this device. Use the full catalog, not a capped recency shelf. Plex album metadata supplies dates and counts; missing values stay last in both directions. Equal values use normalized name/title and stable ID. Existing snapshots lacking new optional metadata must still decode; catalog refresh supplies the new facts.
+
+The index remains visible under every order. Alphabetical orders target letter sections with # last; artist-sorted albums index artist names. Nonalphabetical orders retain one continuous sequence and jump to the first matching artist name or album title. Map those matches to concrete visual rows without changing sort. Artists retain direct lazy heading/row targets; Albums use concrete rows, `scrollTargetLayout`, and native scroll-position binding for reliable cold backward jumps. Index lettering fits its available cells even at accessibility text sizes; the magnifier and adjustable accessibility action provide alternate access. Keep album artwork grids and artist down-column-then-across presentation.
+
+### Later history and offline view work
+
+Persist successful shelf/genre/playlist metadata so offline views can show saved data; retain it on refresh failure. Record confirmed local playback progress in a durable history store shared by phone and CarPlay so Recently Played reflects Songr listening. Keep local events separate from server history, merge recency using the latest timestamp, and avoid double-counting totals. Server history synchronization is a separate capability, not an assumed streaming side effect.
 
 ### Favorites
 
@@ -74,13 +83,7 @@ Use a versioned atomic store in Application Support, keyed by account identity, 
 
 ## Work order and verification
 
-The navigation layout ruling is settled: B. The next implementation slice
-is the combined header and existing menu destinations, followed by sorting,
-favorites/download services and UI, and their CarPlay entry points. The B
-selection settles placement; do not treat it as approval of every proposed
-storage/history policy. Do not ship inert feature controls in an
-intermediate slice. The separately approved CarPlay browse presentation
-work remains active under docs/plans/carplay-browse.md.
+The B header, direct recent destinations, and full-catalog sorting are implemented. Verification and device limitations live in `docs/reviews/phone-navigation.md`. The separately approved CarPlay browse work remains the next priority under `docs/plans/carplay-browse.md`. Favorites, downloads, local history, and corresponding CarPlay entries remain subsequent functional work; B approval does not settle every proposed storage/history policy.
 
 - Shipping slices run canonical SongrKit tests and app build from .agents/repo-guidance.md, using the separate verification project to preserve owner signing overrides. Respect the protected simulator in .agents/machines.md.
 - Check narrow phone widths, portrait/landscape, large text, player bar present/absent, all menu destinations, selected states, navigation return, refresh, and VoiceOver. Compare available content space with the current UI.

@@ -12,9 +12,10 @@ import SwiftUI
 /// headings, with the same jump rail as artists/albums.
 struct GenresView: View {
     @EnvironmentObject private var model: AppModel
+    var order = BrowseOrder()
 
     private var sections: [CatalogSection<Genre>] {
-        CatalogIndexer.sections(of: model.genres ?? [], name: \.title)
+        order.apply(to: CatalogIndexer.sections(of: model.genres ?? [], name: \.title))
     }
 
     var body: some View {
@@ -29,6 +30,7 @@ struct GenresView: View {
                         Rectangle().fill(SongrTheme.line).frame(width: 1)
                         ScrollView {
                             LazyVStack(alignment: .leading, spacing: 0) {
+                                BrowseScopeHeading(scope: .genres)
                                 ForEach(sections, id: \.title) { section in
                                     SongrGroupHeading(title: section.title)
                                         .id(anchor(section.title))
@@ -54,6 +56,7 @@ struct GenresView: View {
                         .refreshable { await model.loadShelf(.genres, force: true) }
                     }
                 }
+                .id(order)
             } else {
                 ScopeStatusView(scope: .genres, empty: "No genres in this library.")
             }
@@ -146,6 +149,7 @@ struct PlaylistsView: View {
             if let playlists = model.playlists, !playlists.isEmpty {
                 ScrollView {
                     LazyVStack(spacing: 0) {
+                        BrowseScopeHeading(scope: .playlists)
                         ForEach(playlists) { playlist in
                             NavigationLink(value: playlist) {
                                 PlaylistRow(playlist: playlist)
@@ -346,10 +350,12 @@ struct AlbumShelfView: View {
         Group {
             if let albums, !albums.isEmpty {
                 ScrollView {
-                    AlbumGrid(albums: albums)
-                        .padding(.horizontal, 18)
-                        .padding(.top, 12)
-                        .padding(.bottom, 24)
+                    VStack(alignment: .leading, spacing: 0) {
+                        BrowseScopeHeading(scope: scope)
+                        AlbumGrid(albums: albums)
+                    }
+                    .padding(.horizontal, 18)
+                    .padding(.bottom, 24)
                 }
                 .refreshable { await model.loadShelf(scope, force: true) }
             } else {
@@ -363,6 +369,22 @@ struct AlbumShelfView: View {
 
 // MARK: - Shared status surfaces
 
+/// Secondary destinations identify themselves inside their scrollable content,
+/// leaving the compact header's More label the same width in every scope.
+private struct BrowseScopeHeading: View {
+    let scope: BrowseScope
+
+    var body: some View {
+        Text(scope.label)
+            .font(.custom(SongrTheme.Weight.demiBold.face, size: 14, relativeTo: .subheadline))
+            .foregroundStyle(SongrTheme.soft)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.top, 12)
+            .padding(.bottom, 10)
+            .accessibilityAddTraits(.isHeader)
+    }
+}
+
 /// Loading / empty / error body for a whole scope pane, songr-quiet.
 struct ScopeStatusView: View {
     @EnvironmentObject private var model: AppModel
@@ -371,6 +393,8 @@ struct ScopeStatusView: View {
 
     var body: some View {
         VStack(spacing: 14) {
+            BrowseScopeHeading(scope: scope)
+                .padding(.horizontal, 18)
             Spacer()
             if let message = model.shelfErrors[scope] {
                 Text(message)

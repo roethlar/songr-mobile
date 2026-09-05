@@ -38,14 +38,14 @@ live rule now owned elsewhere - archive it per the rule above: move it verbatim 
 
 Status: Active layout decision.
 
-Decision:
-
-The owner selected candidate B (exact wording: "B") from the compact
-navigation comparison. Combine the Songr mark, Artists, Albums, More, and
-Sort into one 44-point header; put Settings inside More. The visible jump
-rail remains for Artists and Albums. The selected layout contract lives in
-`docs/plans/phone-navigation.md`; comparison mockups live in
-`docs/design/phone-candidates/`.
+Decision: The owner selected candidate B ("B") and approved implementation
+("okay, go"). Subsequent corrections require Recently Added and Recently Played
+to remain directly accessible and Sort to offer more than alphabetical order.
+Combine the Songr mark, Artists, Albums, Added, Played, More, and Sort into one
+44-point header; Settings lives in More. The visible jump rail remains for
+Artists and Albums under every order. `docs/plans/phone-navigation.md` owns the
+layout and contextual sorting contract; comparison mockups in
+`docs/design/phone-candidates/` predate the direct-recents correction.
 
 Reason:
 
@@ -56,7 +56,7 @@ separate from the layout decision.
 
 ### 2026-09-04 - Compact phone chips, visible jump list, and saved music
 
-Status: Active requirements; replacement implementation plan remains proposed.
+Status: Active requirements; candidate B header and sorting approved, saved-music services remain proposed.
 
 Decision:
 
@@ -66,12 +66,11 @@ are not inherently better. Include sorting, Recently Added, Recently Played,
 Genres, Favorites, and downloads to save music on the device for offline
 playback. CarPlay remains the product's main purpose.
 
-Reason:
-
-The owner rejected removing the jump list, then rejected the larger two-row
-chip proposal. The revised compact layout and feature implementation are
-proposed in `docs/plans/phone-navigation.md`; neither rejection authorizes
-the new proposal. The existing touch-index interaction remains in force.
+Reason: The owner rejected removing the jump list and rejected the larger
+two-row chip proposal. The subsequent candidate B selection, implementation go,
+and corrections settle the compact header and sorting slice. The plan at
+`docs/plans/phone-navigation.md` owns that contract and the remaining proposed
+saved-music services. The existing touch-index interaction remains in force.
 
 ### 2026-09-04 - Phone touch index; CarPlay is the next priority
 

@@ -14,7 +14,12 @@ pointed to, never copied; machine-specific facts (local toolchains, host layout,
 
 ## Now
 
-- The owner selected phone navigation candidate B: the combined header. `docs/plans/phone-navigation.md` owns the selected layout and proposed sorting/Favorites/offline Downloads scope. `docs/design/phone-candidates/index.html` and its README hold the comparison mockups and their verification. The visible Artists/Albums jump rail remains; app implementation of B has not landed.
+- Candidate B is implemented with direct Artists, Albums, Added, and Played
+  access, a compact More menu, and full-catalog contextual sorting.
+  `docs/plans/phone-navigation.md` owns the contract; `docs/reviews/phone-navigation.md`
+  owns verification and device limitations. Favorites, local playback history,
+  and offline Downloads remain subsequent functional slices. CarPlay browse
+  presentation remains the next approved priority.
 
 - The artist jump correction now uses direct, stable row targets and has passed full-library portrait/landscape simulator checks. `docs/reviews/phone-jump-followup.md` owns the results and physical-device limitation.
 
@@ -61,7 +66,7 @@ pointed to, never copied; machine-specific facts (local toolchains, host layout,
 - `.agents/decisions.md`
 - `.agents/machines.md` (including the protected simulator rule)
 - `docs/plans/phone-touch-index.md`
-- `docs/plans/phone-navigation.md` (proposed)
+- `docs/plans/phone-navigation.md` (header/sorting implemented; saved music proposed)
 - `docs/reviews/phone-jump-followup.md`
 - `docs/plans/carplay-browse.md` (approved; implementation in progress)
 - `docs/reviews/carplay-browse.md`

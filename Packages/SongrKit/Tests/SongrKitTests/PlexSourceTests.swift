@@ -61,6 +61,24 @@ final class PlexSourceTests: XCTestCase {
                        "album listings are metadata type 9")
     }
 
+    func testAlbumSortMetadataMapsPlexDatesAndCounts() async throws {
+        StubURLProtocol.route("GET", "/library/sections/5/all") { _ in
+            .init(data: Fixtures.data("""
+            {"MediaContainer":{"size":2,"totalSize":2,"Metadata":[
+              {"ratingKey":"1","title":"Known","addedAt":1700000000,"lastViewedAt":1700000100,"viewCount":8},
+              {"ratingKey":"2","title":"Unplayed","lastViewedAt":0}
+            ]}}
+            """))
+        }
+        let albums = try await source.fetchAlbums()
+        XCTAssertEqual(albums[0].addedAt, Date(timeIntervalSince1970: 1700000000))
+        XCTAssertEqual(albums[0].lastPlayedAt, Date(timeIntervalSince1970: 1700000100))
+        XCTAssertEqual(albums[0].playCount, 8)
+        XCTAssertNil(albums[1].addedAt)
+        XCTAssertNil(albums[1].lastPlayedAt)
+        XCTAssertNil(albums[1].playCount)
+    }
+
     func testFetchTracksSortsByDiscThenTrackAndKeepsPartKey() async throws {
         StubURLProtocol.route("GET", "/library/metadata/200/children") { _ in
             .init(data: Fixtures.albumTracks)

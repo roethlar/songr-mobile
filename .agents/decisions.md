@@ -34,6 +34,26 @@ live rule now owned elsewhere - archive it per the rule above: move it verbatim 
 
 ## Decisions
 
+### 2026-09-04 - Phone navigation candidate B selected
+
+Status: Active layout decision.
+
+Decision:
+
+The owner selected candidate B (exact wording: "B") from the compact
+navigation comparison. Combine the Songr mark, Artists, Albums, More, and
+Sort into one 44-point header; put Settings inside More. The visible jump
+rail remains for Artists and Albums. The selected layout contract lives in
+`docs/plans/phone-navigation.md`; comparison mockups live in
+`docs/design/phone-candidates/`.
+
+Reason:
+
+The owner wanted less screen use, touch friendliness, and simplicity, then
+selected the option with the smallest permanent navigation area. This
+settles placement; proposed saved-music storage/history policies remain
+separate from the layout decision.
+
 ### 2026-09-04 - Compact phone chips, visible jump list, and saved music
 
 Status: Active requirements; replacement implementation plan remains proposed.

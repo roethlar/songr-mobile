@@ -1,6 +1,6 @@
 # Phone library navigation and saved music
 
-Status: REVISED PROPOSAL 2026-09-04. The owner rejected replacing the jump rail and then rejected a larger, two-row chip layout. Requirements: less screen space, touch friendly, simple. The compact replacement below awaits approval; this document does not authorize shipping changes. Previously approved phone jump and CarPlay work retain their own authorization.
+Status: LAYOUT SELECTED 2026-09-04 — candidate B (owner wording: "B"). The owner rejected replacing the jump rail and then rejected a larger, two-row chip layout. Requirements: less screen space, touch friendly, simple. The selected navigation contract is below; detailed sorting and saved-music implementation remains proposed. Previously approved phone jump and CarPlay work retain their own authorization.
 
 ## Required behavior
 
@@ -9,21 +9,29 @@ Status: REVISED PROPOSAL 2026-09-04. The owner rejected replacing the jump rail 
 - Include sorting, Recently Added, Recently Played, Most Played, Genres, Playlists, Favorites, and a download option to save music on the device for offline playback.
 - Favor compact controls and content space over larger visual buttons. CarPlay remains the main purpose of the app.
 
-## Proposed compact navigation
+## Selected compact navigation — candidate B
 
-One row replaces the horizontal chip scroller:
+One 44-point row combines the brand/header and navigation, replacing both
+the separate header and horizontal chip scroller:
 
-    Artists    Albums    More ∨    [sort icon]
+    [Songr mark]    Artists    Albums    More ∨    [sort icon]
 
-1. Artists and Albums remain directly selectable. More opens a native menu containing Genres, Recently Added, Recently Played, Most Played, Playlists, Favorites, and Downloads. The active destination is checked. Dismissing the menu changes nothing.
+1. Artists and Albums remain directly selectable. More opens a native menu containing Genres, Recently Added, Recently Played, Most Played, Playlists, Favorites, and Downloads, with Settings in a separated final group. The active destination is checked. Dismissing the menu changes nothing.
 2. Keep this row around 44 points high at ordinary text sizes. Use compact text and restrained selection styling, with non-overlapping full-height hit areas of at least 44×44 points. No large tiles, two-row shortcut dashboard, or horizontal scrolling.
 3. The sort icon opens contextual sorting choices; it does not add another permanent toolbar. It has an accessible Sort label and selected order announcement.
 4. When a secondary scope is active, More carries a selected state. Show its full name in the existing content heading rather than expanding the chip label or adding a permanent heading row.
 5. Adapt for landscape and Dynamic Type without clipping or overlapping targets. At accessibility text sizes, allow an explicit compact menu fallback for scope selection; do not shrink text or hide the jump rail.
-6. Reuse SongrShell.select(_:), visited panes, and per-pane NavigationPath so scope switches preserve browsing position and shelf refresh behavior. Keep settings and the player bar reachable. Hidden panes must not receive accessibility focus.
+6. Reuse SongrShell.select(_:), visited panes, and per-pane NavigationPath so scope switches preserve browsing position and shelf refresh behavior. Settings is reached through More; the player bar retains its existing position. Hidden panes must not receive accessibility focus.
 7. The tradeoff is an extra tap for the secondary destinations. The owner's preference for compact navigation takes precedence over giving every destination a permanent chip.
 
 The old docs/design/phone-navigation-concept.html is retired, not an implementation reference.
+
+The owner requested visual candidates after this proposal. Compare
+docs/design/phone-candidates/index.html and its README: A keeps compact tabs
+under the header, B combines navigation into the header, and C puts it in
+a bottom toolbar. All retain the visible Artists/Albums jump rail. The
+owner selected B on 2026-09-04; its placement now governs this layout
+contract. A and C remain comparison alternatives only.
 
 ## Existing capabilities and affected code
 
@@ -66,7 +74,13 @@ Use a versioned atomic store in Application Support, keyed by account identity, 
 
 ## Work order and verification
 
-The next owner ruling is the compact navigation layout. After approval, implement navigation/existing views and sorting, then favorites and download services/UI, then their CarPlay entry points. Do not ship inert feature controls in an intermediate slice. The separately approved CarPlay browse presentation work remains active under docs/plans/carplay-browse.md.
+The navigation layout ruling is settled: B. The next implementation slice
+is the combined header and existing menu destinations, followed by sorting,
+favorites/download services and UI, and their CarPlay entry points. The B
+selection settles placement; do not treat it as approval of every proposed
+storage/history policy. Do not ship inert feature controls in an
+intermediate slice. The separately approved CarPlay browse presentation
+work remains active under docs/plans/carplay-browse.md.
 
 - Shipping slices run canonical SongrKit tests and app build from .agents/repo-guidance.md, using the separate verification project to preserve owner signing overrides. Respect the protected simulator in .agents/machines.md.
 - Check narrow phone widths, portrait/landscape, large text, player bar present/absent, all menu destinations, selected states, navigation return, refresh, and VoiceOver. Compare available content space with the current UI.

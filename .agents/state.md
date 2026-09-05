@@ -14,7 +14,7 @@ pointed to, never copied; machine-specific facts (local toolchains, host layout,
 
 ## Now
 
-- The owner requires compact, simple, touch-friendly chips using less screen space, with the jump rail retained for Artists/Albums. `docs/plans/phone-navigation.md` proposes one row (Artists, Albums, More, Sort) and covers Favorites/offline Downloads. Approval is pending; both the old picker concept and larger two-row proposal are rejected.
+- The owner selected phone navigation candidate B: the combined header. `docs/plans/phone-navigation.md` owns the selected layout and proposed sorting/Favorites/offline Downloads scope. `docs/design/phone-candidates/index.html` and its README hold the comparison mockups and their verification. The visible Artists/Albums jump rail remains; app implementation of B has not landed.
 
 - The artist jump correction now uses direct, stable row targets and has passed full-library portrait/landscape simulator checks. `docs/reviews/phone-jump-followup.md` owns the results and physical-device limitation.
 
@@ -31,7 +31,7 @@ pointed to, never copied; machine-specific facts (local toolchains, host layout,
 
 ## Next
 
-- Obtain the owner ruling on the compact chip layout in `docs/plans/phone-navigation.md`, then implement navigation/sorting and saved-music slices, sharing playback with CarPlay. Preserve the visible jump rail and artist jump correction.
+- Implement selected navigation candidate B under `docs/plans/phone-navigation.md`, starting with the combined header and existing menu destinations. Follow with sorting and saved-music slices, sharing playback with CarPlay. Preserve the visible jump rail and artist jump correction.
 
 - Reopen the CarPlay simulator display and complete the visual/navigation checks in `docs/reviews/carplay-browse.md` before finalizing the approved slice.
 - Check sustained-touch magnifier appearance, haptic feel, cancellation, and

@@ -7,3 +7,4 @@ DerivedData/
 # In-repo build artifacts (hard boundary: -derivedDataPath ./build)
 build/
 .build/
+.DS_Store

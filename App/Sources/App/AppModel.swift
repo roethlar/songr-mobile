@@ -331,29 +331,6 @@ final class AppModel: ObservableObject {
         Task { await connect() }
     }
 
-#if DEBUG
-    /// TEMP gallery/debug hook: select a library by title without UI. DELETE.
-    func debugSelectLibrary(titled title: String) {
-        guard let token = credentials.authToken,
-              let serverURL = credentials.serverURL else { return }
-        let probe = PlexSource(baseURL: serverURL, identity: identity, token: token)
-        Task {
-            guard let libs = try? await probe.fetchMusicLibraries() else {
-                NSLog("[gallery] library fetch failed"); return
-            }
-            NSLog("[gallery] libraries: %@",
-                  libs.map { "\($0.id)=\($0.title)" }.joined(separator: ", "))
-            if let hit = libs.first(where: {
-                $0.title.caseInsensitiveCompare(title) == .orderedSame
-            }) {
-                self.selectLibrary(hit)
-            } else {
-                NSLog("[gallery] no library titled %@", title)
-            }
-        }
-    }
-#endif
-
     func refreshCatalog() async {
         guard let source, !isRefreshing else { return }
         isRefreshing = true

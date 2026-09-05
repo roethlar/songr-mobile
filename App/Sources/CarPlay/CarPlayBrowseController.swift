@@ -3,7 +3,7 @@ import Combine
 import SongrKit
 import UIKit
 
-/// The CarPlay face of songr: a tab bar with Artists / Albums / Now Playing.
+/// The CarPlay face of songr: Artists / Albums tabs, with Now Playing pushed on play.
 /// - Artists: ONE continuous list, A–Z sections with the letter index rail
 ///   (no letter drill-down), rows "name — N albums".
 /// - Albums: artwork rows (CPListImageRowItem) grouped by letter; tapping a
@@ -22,14 +22,6 @@ final class CarPlayBrowseController {
     private var artworkGeneration = 0
 
     private var rowBatchSize: Int { Int(CPMaximumNumberOfGridImages) }
-    /// TEMP gallery state — DELETE with gallery extension below.
-    fileprivate var lastSnapshot: CatalogSnapshot? {
-        get { _lastSnapshot }
-        set { _lastSnapshot = newValue }
-    }
-    private var _lastSnapshot: CatalogSnapshot?
-    fileprivate var galleryCommand = ""
-
     init(interfaceController: CPInterfaceController, model: AppModel) {
         self.interfaceController = interfaceController
         self.model = model
@@ -50,7 +42,7 @@ final class CarPlayBrowseController {
         // list templates surface the standard now-playing button on their own.
         NSLog("[carplay] caps items=%d sections=%d imagesPerRow=%d",
               CPListTemplate.maximumItemCount, CPListTemplate.maximumSectionCount,
-              CPListImageRowItem.maximumImageSize.width > 0 ? 4 : 4)
+              CPMaximumNumberOfGridImages)
         model.$snapshot
             .receive(on: DispatchQueue.main)
             .sink { [weak self] snapshot in
@@ -58,9 +50,6 @@ final class CarPlayBrowseController {
             }
             .store(in: &cancellables)
 
-#if DEBUG
-        registerGalleryHook()
-#endif
         return CPTabBarTemplate(templates: [artistsList, albumsList])
     }
 
@@ -73,9 +62,20 @@ final class CarPlayBrowseController {
             albumsList.updateSections([])
             return
         }
-        lastSnapshot = snapshot
         rebuildArtists(snapshot)
         rebuildAlbums(snapshot)
+#if DEBUG
+        if #available(iOS 26.0, *) {
+            func entryCount(in template: CPListTemplate) -> Int {
+                template.sections.flatMap(\.items)
+                    .compactMap { $0 as? CPListImageRowItem }
+                    .reduce(0) { $0 + $1.elements.count }
+            }
+            NSLog("[carplay] retained artists=%d/%d albums=%d/%d",
+                  entryCount(in: artistsList), snapshot.artists.count,
+                  entryCount(in: albumsList), snapshot.albums.count)
+        }
+#endif
     }
 
     private func rebuildArtists(_ snapshot: CatalogSnapshot) {
@@ -84,32 +84,40 @@ final class CarPlayBrowseController {
             rebuildArtistsLegacy(plan)
             return
         }
-        let sections = plan.prefix(Int(CPListTemplate.maximumSectionCount)).map { section -> CPListSection in
-            let artists = section.artists
-            let elements = artists.map { artist in
-                CPListImageRowItemCondensedElement(
-                    image: Self.blankTile,
-                    imageShape: .roundedRectangle,
-                    title: artist.name,
-                    subtitle: CarPlayBrowsePlan.artistDetailText(albumCount: artist.albumCount),
-                    accessorySymbolName: "chevron.right")
-            }
-            let item = CPListImageRowItem(text: nil,
-                                          condensedElements: elements,
-                                          allowsMultipleLines: true)
-            item.listImageRowHandler = { [weak self] _, index, completion in
-                guard let self, artists.indices.contains(index) else { return completion() }
-                self.pushArtistAlbums(artists[index])
-                completion()
-            }
-            return CPListSection(items: [item],
-                                 header: section.indexTitle,
-                                 sectionIndexTitle: section.indexTitle)
+        var itemBudget = Int(CPListTemplate.maximumItemCount)
+        var sections: [CPListSection] = []
+        for section in plan.prefix(Int(CPListTemplate.maximumSectionCount)) {
+            guard itemBudget > 0 else { break }
+            let items = stride(from: 0, to: section.artists.count, by: rowBatchSize)
+                .prefix(itemBudget).map { start in
+                    artistCardItem(for: Array(section.artists[start..<min(start + rowBatchSize, section.artists.count)]))
+                }
+            itemBudget -= items.count
+            sections.append(CPListSection(items: items, header: section.indexTitle,
+                                          sectionIndexTitle: section.indexTitle))
         }
-        artistsList.updateSections(Array(sections))
+        artistsList.updateSections(sections)
     }
 
-    /// Pre-iOS 26 fallback (condensed image-row elements don't exist there):
+    @available(iOS 26.0, *)
+    private func artistCardItem(for artists: [Artist]) -> CPListImageRowItem {
+        let elements = artists.map { artist in
+            CPListImageRowItemCardElement(
+                image: Self.blankTile, showsImageFullHeight: false,
+                title: artist.name,
+                subtitle: CarPlayBrowsePlan.artistDetailText(albumCount: artist.albumCount),
+                tintColor: nil)
+        }
+        let item = CPListImageRowItem(text: nil, cardElements: elements, allowsMultipleLines: true)
+        item.listImageRowHandler = { [weak self] _, index, completion in
+            guard let self, artists.indices.contains(index) else { return completion() }
+            self.pushArtistAlbums(artists[index])
+            completion()
+        }
+        return item
+    }
+
+    /// Pre-iOS 26 fallback (multi-line image-row elements don't exist there):
     /// plain indexed rows, clamped to the head-unit item budget.
     private func rebuildArtistsLegacy(_ plan: [CarPlayBrowsePlan.ArtistSection]) {
         var itemBudget = Int(CPListTemplate.maximumItemCount)
@@ -141,7 +149,9 @@ final class CarPlayBrowseController {
         let albums = model.albums(forArtist: artist.id)
         let items: [CPListTemplateItem]
         if #available(iOS 26.0, *) {
-            items = [gridItem(for: albums)]
+            items = CarPlayBrowsePlan.imageRowBatches(albums, batchSize: rowBatchSize)
+                .prefix(Int(CPListTemplate.maximumItemCount))
+                .map { albumCardItem(for: $0) }
         } else {
             items = CarPlayBrowsePlan.imageRowBatches(albums, batchSize: rowBatchSize)
                 .map { imageRowItem(for: $0) }
@@ -161,12 +171,11 @@ final class CarPlayBrowseController {
         }
         let plan = CarPlayBrowsePlan.albumSections(
             snapshot.albums,
-            batchSize: Int.max,
-            maximumRows: Int.max
+            batchSize: rowBatchSize,
+            maximumRows: Int(CPListTemplate.maximumItemCount)
         )
         let sections = plan.prefix(Int(CPListTemplate.maximumSectionCount)).map { section -> CPListSection in
-            let albums = section.rows.flatMap { $0 }
-            return CPListSection(items: [gridItem(for: albums)],
+            return CPListSection(items: section.rows.map { albumCardItem(for: $0) },
                                  header: section.indexTitle,
                                  sectionIndexTitle: section.indexTitle)
         }
@@ -234,38 +243,52 @@ final class CarPlayBrowseController {
     }
 
     @available(iOS 26.0, *)
-    private func gridItem(for albums: [Album]) -> CPListImageRowItem {
-        let elements = albums.map {
-            CPListImageRowItemGridElement(image: Self.monogramCover(for: $0.title))
-        }
+    private func albumCardItem(for albums: [Album]) -> CPListImageRowItem {
+        let elements = albums.map { Self.albumCard(for: $0) }
         let item = CPListImageRowItem(text: nil,
-                                      gridElements: elements,
+                                      cardElements: elements,
                                       allowsMultipleLines: true)
         item.listImageRowHandler = { [weak self] _, index, completion in
             guard let self, albums.indices.contains(index) else { return completion() }
             self.pushTrackList(for: albums[index])
             completion()
         }
-        loadCovers(for: albums, into: elements)
+        loadCardCovers(for: albums, into: item)
         return item
     }
 
     @available(iOS 26.0, *)
-    private func loadCovers(for albums: [Album], into elements: [CPListImageRowItemGridElement]) {
+    private static func albumCard(for album: Album, image: UIImage? = nil) -> CPListImageRowItemCardElement {
+        CPListImageRowItemCardElement(
+            image: image ?? monogramCover(for: album.title),
+            showsImageFullHeight: false,
+            title: album.title,
+            subtitle: album.artistName,
+            tintColor: nil)
+    }
+
+    @available(iOS 26.0, *)
+    private func loadCardCovers(for albums: [Album], into item: CPListImageRowItem) {
         let generation = artworkGeneration
-        let side = Int(max(CPListImageRowItemGridElement.maximumImageSize.width, 120))
-        Task { [weak self] in
-            for (i, album) in albums.enumerated() {
+        let side = Int(max(CPListImageRowItemCardElement.maximumImageSize.width, 120))
+        Task { [weak self, weak item] in
+            var elements: [CPListImageRowItemCardElement] = []
+            var loadedAny = false
+            for album in albums {
                 guard let self, self.artworkGeneration == generation else { return }
-                if let cover = await self.model.artwork(path: album.thumbPath,
-                                                        pixels: side) {
-                    elements[i].image = cover
-                }
+                let cover = await self.model.artwork(path: album.thumbPath, pixels: side)
+                loadedAny = loadedAny || cover != nil
+                elements.append(Self.albumCard(for: album, image: cover))
             }
+            guard let self, self.artworkGeneration == generation,
+                  loadedAny, let item else { return }
+            // Updating an attached element reserializes the template. Publish a
+            // completed group once so a large catalog doesn't flood CarPlay.
+            item.elements = elements
         }
     }
 
-    /// Flat songr-surface tile so condensed artist elements read as plain
+    /// Flat songr-surface tile so artist elements read as plain
     /// text-on-background rows, like the songr artist list.
     private static let blankTile: UIImage = {
         let r = UIGraphicsImageRenderer(size: CGSize(width: 40, height: 40))
@@ -345,204 +368,3 @@ final class CarPlayBrowseController {
         return item
     }
 }
-
-// MARK: - TEMP template gallery (DEBUG only; driven by <app-tmp>/gallery.txt) — DELETE
-#if DEBUG
-extension CarPlayBrowseController {
-    func registerGalleryHook() {
-        let url = URL(fileURLWithPath: NSTemporaryDirectory())
-            .appendingPathComponent("gallery.txt")
-        Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
-            let raw = (try? String(contentsOf: url, encoding: .utf8))?
-                .trimmingCharacters(in: .whitespacesAndNewlines)
-            guard let raw, !raw.isEmpty else { return }
-            Task { @MainActor [weak self] in
-                guard let self, raw != self.galleryCommand else { return }
-                self.galleryCommand = raw
-                if raw.hasPrefix("lib=") {
-                    self.model.debugSelectLibrary(titled: String(raw.dropFirst(4)))
-                } else if let v = Int(raw) {
-                    self.showGalleryVariant(v)
-                }
-            }
-        }
-    }
-
-    private func showGalleryVariant(_ v: Int) {
-        guard let snap = lastSnapshot else { NSLog("[gallery] no snapshot yet"); return }
-        let template: CPTemplate
-        switch v {
-        case 0: template = galleryArtistsPlain(snap)
-        case 1:
-            guard #available(iOS 26.0, *) else { return }
-            template = galleryArtistsCards(snap)
-        case 2: template = galleryAlbumsPlain(snap)
-        case 3:
-            guard #available(iOS 26.0, *) else { return }
-            template = galleryAlbumsCards(snap)
-        case 4:
-            guard #available(iOS 26.0, *) else { return }
-            template = galleryAlbumsGrid(snap)
-        case 5: template = galleryLetterGrid()
-        default: return
-        }
-        NSLog("[gallery] showing variant %d", v)
-        interfaceController.setRootTemplate(template, animated: false, completion: nil)
-    }
-
-    private func galleryArtistsPlain(_ snap: CatalogSnapshot) -> CPTemplate {
-        let plan = CarPlayBrowsePlan.artistSections(snap.artists)
-        var budget = Int(CPListTemplate.maximumItemCount)
-        var sections: [CPListSection] = []
-        for section in plan.prefix(Int(CPListTemplate.maximumSectionCount)) {
-            guard budget > 0 else { break }
-            let artists = Array(section.artists.prefix(budget))
-            budget -= artists.count
-            let items = artists.map { artist -> CPListItem in
-                let item = CPListItem(
-                    text: artist.name,
-                    detailText: CarPlayBrowsePlan.artistDetailText(albumCount: artist.albumCount),
-                    image: nil, accessoryImage: nil,
-                    accessoryType: .disclosureIndicator)
-                item.handler = { [weak self] _, completion in
-                    self?.pushArtistAlbums(artist)
-                    completion()
-                }
-                return item
-            }
-            sections.append(CPListSection(items: items,
-                                          header: section.indexTitle,
-                                          sectionIndexTitle: section.indexTitle))
-        }
-        return CPListTemplate(title: "0 · Artists — rows", sections: sections)
-    }
-
-    @available(iOS 26.0, *)
-    private func galleryArtistsCards(_ snap: CatalogSnapshot) -> CPTemplate {
-        let plan = CarPlayBrowsePlan.artistSections(snap.artists)
-        let sections = plan.prefix(Int(CPListTemplate.maximumSectionCount)).map { section -> CPListSection in
-            let artists = section.artists
-            let elements = artists.map { artist in
-                CPListImageRowItemCondensedElement(
-                    image: Self.blankTile,
-                    imageShape: .roundedRectangle,
-                    title: artist.name,
-                    subtitle: CarPlayBrowsePlan.artistDetailText(albumCount: artist.albumCount),
-                    accessorySymbolName: "chevron.right")
-            }
-            let item = CPListImageRowItem(text: nil,
-                                          condensedElements: elements,
-                                          allowsMultipleLines: true)
-            item.listImageRowHandler = { [weak self] _, index, completion in
-                guard let self, artists.indices.contains(index) else { return completion() }
-                self.pushArtistAlbums(artists[index])
-                completion()
-            }
-            return CPListSection(items: [item],
-                                 header: section.indexTitle,
-                                 sectionIndexTitle: section.indexTitle)
-        }
-        return CPListTemplate(title: "1 · Artists — cards", sections: Array(sections))
-    }
-
-    private func galleryAlbumsPlain(_ snap: CatalogSnapshot) -> CPTemplate {
-        let plan = CarPlayBrowsePlan.albumSections(snap.albums, batchSize: Int.max, maximumRows: Int.max)
-        var budget = Int(CPListTemplate.maximumItemCount)
-        var sections: [CPListSection] = []
-        var warm: [(Album, CPListItem)] = []
-        for section in plan.prefix(Int(CPListTemplate.maximumSectionCount)) {
-            guard budget > 0 else { break }
-            let albums = Array(section.rows.flatMap { $0 }.prefix(budget))
-            budget -= albums.count
-            let items = albums.map { album -> CPListItem in
-                let item = CPListItem(
-                    text: album.title,
-                    detailText: album.artistName,
-                    image: Self.monogramCover(for: album.title),
-                    accessoryImage: nil,
-                    accessoryType: .disclosureIndicator)
-                item.handler = { [weak self] _, completion in
-                    self?.pushTrackList(for: album)
-                    completion()
-                }
-                return item
-            }
-            if warm.count < 20 { warm.append(contentsOf: zip(albums, items).prefix(20 - warm.count)) }
-            sections.append(CPListSection(items: items,
-                                          header: section.indexTitle,
-                                          sectionIndexTitle: section.indexTitle))
-        }
-        let generation = artworkGeneration
-        Task { [weak self] in
-            for (album, item) in warm {
-                guard let self, self.artworkGeneration == generation else { return }
-                if let cover = await self.model.artwork(path: album.thumbPath, pixels: 180) {
-                    item.setImage(cover)
-                }
-            }
-        }
-        return CPListTemplate(title: "2 · Albums — rows", sections: sections)
-    }
-
-    @available(iOS 26.0, *)
-    private func galleryAlbumsCards(_ snap: CatalogSnapshot) -> CPTemplate {
-        let plan = CarPlayBrowsePlan.albumSections(snap.albums, batchSize: Int.max, maximumRows: Int.max)
-        var warm: [(Album, CPListImageRowItemCondensedElement)] = []
-        let sections = plan.prefix(Int(CPListTemplate.maximumSectionCount)).map { section -> CPListSection in
-            let albums = section.rows.flatMap { $0 }
-            let elements = albums.map { album in
-                CPListImageRowItemCondensedElement(
-                    image: Self.monogramCover(for: album.title),
-                    imageShape: .roundedRectangle,
-                    title: album.title,
-                    subtitle: album.artistName,
-                    accessorySymbolName: "chevron.right")
-            }
-            if warm.count < 20 { warm.append(contentsOf: zip(albums, elements).prefix(20 - warm.count)) }
-            let item = CPListImageRowItem(text: nil,
-                                          condensedElements: elements,
-                                          allowsMultipleLines: true)
-            item.listImageRowHandler = { [weak self] _, index, completion in
-                guard let self, albums.indices.contains(index) else { return completion() }
-                self.pushTrackList(for: albums[index])
-                completion()
-            }
-            return CPListSection(items: [item],
-                                 header: section.indexTitle,
-                                 sectionIndexTitle: section.indexTitle)
-        }
-        let generation = artworkGeneration
-        Task { [weak self] in
-            for (album, element) in warm {
-                guard let self, self.artworkGeneration == generation else { return }
-                if let cover = await self.model.artwork(path: album.thumbPath, pixels: 180) {
-                    element.image = cover
-                }
-            }
-        }
-        return CPListTemplate(title: "3 · Albums — cards", sections: Array(sections))
-    }
-
-    @available(iOS 26.0, *)
-    private func galleryAlbumsGrid(_ snap: CatalogSnapshot) -> CPTemplate {
-        let plan = CarPlayBrowsePlan.albumSections(snap.albums, batchSize: Int.max, maximumRows: Int.max)
-        let sections = plan.prefix(Int(CPListTemplate.maximumSectionCount)).map { section -> CPListSection in
-            let albums = section.rows.flatMap { $0 }
-            return CPListSection(items: [gridItem(for: albums)],
-                                 header: section.indexTitle,
-                                 sectionIndexTitle: section.indexTitle)
-        }
-        return CPListTemplate(title: "4 · Albums — cover grid", sections: Array(sections))
-    }
-
-    private func galleryLetterGrid() -> CPTemplate {
-        let groups = ["ABC", "DEF", "GHI", "JKL", "MNO", "PQRS", "TUV", "WXYZ#"]
-        let buttons = groups.map { group -> CPGridButton in
-            let label = group.map(String.init).joined(separator: " ")
-            return CPGridButton(titleVariants: [label],
-                                image: Self.monogramCover(for: String(group.first ?? "A"))) { _ in }
-        }
-        return CPGridTemplate(title: "5 · Letter launcher", gridButtons: buttons)
-    }
-}
-#endif

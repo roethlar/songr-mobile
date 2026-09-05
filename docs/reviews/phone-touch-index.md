@@ -38,3 +38,7 @@ now-playing sheet, then tap M: ABBA appears beneath M. Evidence:
 The new touch-index build was restored after that comparison. This defect
 predates the touch index; its cause has not yet been established. CarPlay
 remains the owner's next priority.
+
+## Artist-row follow-up
+
+The defect described above was corrected after the physical-phone jump report. The final implementation and verification are recorded in `docs/reviews/phone-jump-followup.md`.

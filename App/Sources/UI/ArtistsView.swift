@@ -29,11 +29,12 @@ struct ArtistsView: View {
                     Rectangle().fill(SongrTheme.line).frame(width: 1)
                     ScrollView {
                         LazyVStack(alignment: .leading, spacing: 0) {
-                            ForEach(sections, id: \.title) { section in
-                                SongrGroupHeading(title: section.title)
-                                    .id(anchor(section.title))
-                                ArtistSectionColumns(items: section.items,
-                                                     columns: columns)
+                            ForEach(browseRows(columns: columns)) { row in
+                                if let title = row.heading {
+                                    SongrGroupHeading(title: title)
+                                } else {
+                                    ArtistColumnsRow(artists: row.artists)
+                                }
                             }
                         }
                         .padding(.horizontal, 18)
@@ -54,32 +55,47 @@ struct ArtistsView: View {
     }
 
     private func anchor(_ title: String) -> String { "artists-\(title)" }
+
+    // Every heading and visual row is a direct lazy-stack child. Nested
+    // variable-length sections can reuse rows or estimate the wrong jump offset.
+    private func browseRows(columns: Int) -> [ArtistBrowseRow] {
+        sections.flatMap { section in
+            let rowCount = (section.items.count + columns - 1) / columns
+            return [ArtistBrowseRow(id: anchor(section.title), heading: section.title, artists: [])]
+                + (0..<rowCount).map { row in
+                    let artists = (0..<columns).map { column -> Artist? in
+                        let index = row + column * rowCount
+                        return section.items.indices.contains(index) ? section.items[index] : nil
+                    }
+                    return ArtistBrowseRow(id: "\(anchor(section.title))-row-\(row)",
+                                           heading: nil, artists: artists)
+                }
+        }
+    }
 }
 
-/// One letter group's rows in CSS-columns reading order: down the first
-/// column, then the next — emitted row-by-row (each visual row is one HStack
-/// of `columns` cells) so the whole list stays lazy.
-private struct ArtistSectionColumns: View {
-    let items: [Artist]
-    let columns: Int
+private struct ArtistBrowseRow: Identifiable {
+    let id: String
+    let heading: String?
+    let artists: [Artist?]
+}
 
+/// One visual row, in the existing down-column-then-across reading order.
+private struct ArtistColumnsRow: View {
+    let artists: [Artist?]
     var body: some View {
-        let rows = (items.count + columns - 1) / columns
-        ForEach(0..<rows, id: \.self) { row in
-            HStack(alignment: .firstTextBaseline, spacing: 24) {
-                ForEach(0..<columns, id: \.self) { column in
-                    let index = row + column * rows
-                    if index < items.count {
-                        NavigationLink(value: items[index]) {
-                            ArtistRow(artist: items[index])
-                        }
-                        .buttonStyle(.plain)
-                        .frame(maxWidth: .infinity)
-                    } else {
-                        Color.clear
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 1)
+        HStack(alignment: .firstTextBaseline, spacing: 24) {
+            ForEach(artists.indices, id: \.self) { column in
+                if let artist = artists[column] {
+                    NavigationLink(value: artist) {
+                        ArtistRow(artist: artist)
                     }
+                    .buttonStyle(.plain)
+                    .frame(maxWidth: .infinity)
+                } else {
+                    Color.clear
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 1)
                 }
             }
         }

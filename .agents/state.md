@@ -14,6 +14,8 @@ pointed to, never copied; machine-specific facts (local toolchains, host layout,
 
 ## Now
 
+- The artist jump correction now uses direct, stable row targets and has passed full-library portrait/landscape simulator checks. `docs/reviews/phone-jump-followup.md` owns the results and physical-device limitation.
+
 - The phone touch index is implemented under the owner's approved plan:
   `docs/plans/phone-touch-index.md`. Verification, device checks still to do,
   and the separately reproduced artist-row defect are recorded in
@@ -30,8 +32,7 @@ pointed to, never copied; machine-specific facts (local toolchains, host layout,
 - Reopen the CarPlay simulator display and complete the visual/navigation checks in `docs/reviews/carplay-browse.md` before finalizing the approved slice.
 - Check sustained-touch magnifier appearance, haptic feel, cancellation, and
   VoiceOver on a device after rebuilding the phone change.
-- Keep the pre-existing artist-row defect visible in the queue; its baseline
-  reproduction is in the phone verification report. CarPlay takes priority.
+- Rebuild the app on the owner's physical iOS 27 phone to check the corrected artist jump behavior; see `docs/reviews/phone-jump-followup.md`.
 
 ## Blockers and open questions
 

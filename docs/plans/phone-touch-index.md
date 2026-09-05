@@ -35,3 +35,7 @@ letter. CarPlay is the product's priority and is the next work item.
 
 Assess the current CarPlay UI and prepare a concrete improvement plan.
 CarPlay implementation requires approval of that plan.
+
+## Device follow-up (2026-09-04)
+
+The owner reports that selecting a jump letter on the physical phone does not change the list. The approved tap/drag-to-jump behavior remains the scope. Correct the artist list identity and scroll destinations; verify that later letters show their own content and earlier letters remain reachable. The final correction and full-library checks are in `docs/reviews/phone-jump-followup.md`. CarPlay work remains in progress under its own plan.

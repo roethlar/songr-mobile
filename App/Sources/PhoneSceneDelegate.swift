@@ -24,6 +24,9 @@ final class PhoneSceneDelegate: UIResponder, UIWindowSceneDelegate {
         if UIPreviewHarness.flag("-SongrForceLandscape") {
             windowScene.requestGeometryUpdate(
                 .iOS(interfaceOrientations: .landscapeRight))
+        } else if UIPreviewHarness.flag("-SongrForcePortrait") {
+            windowScene.requestGeometryUpdate(
+                .iOS(interfaceOrientations: .portrait))
         }
         #endif
     }
